@@ -47,7 +47,7 @@
         },
         "body": {
           "name": "Message",
-          "description": "Contenu du message, par exemple {\"text\": \"Bonjour\"}."
+          "description": "Ce qu’il faut envoyer : {\"text\": \"Bonjour\"}, ou une image, un audio, un lieu ou une réaction. Voyez le générateur d’extraits du panneau Hornero."
         },
         "options": {
           "name": "Options",
@@ -81,11 +81,11 @@
         },
         "duration": {
           "name": "Durée de la vidéo",
-          "description": "Enregistre un clip de cette durée au lieu d'une image fixe."
+          "description": "Enregistre un clip de tant de secondes au lieu d’une image fixe. Nécessite une caméra avec le composant stream."
         },
         "lookback": {
           "name": "Secondes précédentes",
-          "description": "Inclut aussi ces secondes enregistrées avant l'appel."
+          "description": "Inclut aussi ces secondes enregistrées avant l’appel, pour que le clip montre ce qui a mené au déclenchement."
         },
         "typing": {
           "name": "Indicateur de saisie",

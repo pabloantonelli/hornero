@@ -47,7 +47,7 @@
         },
         "body": {
           "name": "Message",
-          "description": "Message content, for example {\"text\": \"Hello\"}."
+          "description": "What to send: {\"text\": \"Hello\"}, or an image, audio, location or reaction. See the Snippet builder in the Hornero panel."
         },
         "options": {
           "name": "Options",
@@ -81,11 +81,11 @@
         },
         "duration": {
           "name": "Video duration",
-          "description": "Record a clip of this many seconds instead of a still image."
+          "description": "Record a clip of this many seconds instead of a still image. Needs a camera with the stream component."
         },
         "lookback": {
           "name": "Lookback",
-          "description": "Also include this many seconds recorded before the call."
+          "description": "Also include this many seconds recorded before the call, so the clip shows what led up to the trigger."
         },
         "typing": {
           "name": "Typing indicator",

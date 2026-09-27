@@ -47,7 +47,7 @@
         },
         "body": {
           "name": "Nachricht",
-          "description": "Nachrichteninhalt, zum Beispiel {\"text\": \"Hallo\"}."
+          "description": "Was gesendet wird: {\"text\": \"Hallo\"}, oder ein Bild, Audio, Standort oder eine Reaktion. Siehe den Snippet-Generator im Hornero-Panel."
         },
         "options": {
           "name": "Optionen",
@@ -81,11 +81,11 @@
         },
         "duration": {
           "name": "Videolänge",
-          "description": "Nimmt einen Clip dieser Länge auf statt eines Standbilds."
+          "description": "Nimmt einen Clip von so vielen Sekunden auf statt eines Standbilds. Erfordert eine Kamera mit der stream-Komponente."
         },
         "lookback": {
           "name": "Vorlaufzeit",
-          "description": "Nimmt zusätzlich diese Sekunden vor dem Aufruf mit auf."
+          "description": "Nimmt zusätzlich so viele Sekunden vor dem Aufruf mit auf, damit der Clip zeigt, was zum Auslöser führte."
         },
         "typing": {
           "name": "Schreibanzeige",

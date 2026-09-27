@@ -47,7 +47,7 @@
         },
         "body": {
           "name": "Mensagem",
-          "description": "Conteúdo da mensagem, por exemplo {\"text\": \"Olá\"}."
+          "description": "O que enviar: {\"text\": \"Olá\"}, ou uma imagem, áudio, localização ou reação. Veja o gerador de trechos no painel do Hornero."
         },
         "options": {
           "name": "Opções",
@@ -81,11 +81,11 @@
         },
         "duration": {
           "name": "Duração do vídeo",
-          "description": "Grava um clipe destes segundos em vez de uma foto."
+          "description": "Grava um clipe com estes segundos em vez de uma imagem fixa. Precisa de uma câmara com o componente stream."
         },
         "lookback": {
           "name": "Segundos anteriores",
-          "description": "Inclui também estes segundos gravados antes da chamada."
+          "description": "Inclui também estes segundos gravados antes da chamada, para o clipe mostrar o que levou ao disparo."
         },
         "typing": {
           "name": "Indicador de digitação",

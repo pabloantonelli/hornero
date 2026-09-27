@@ -1,44 +1,89 @@
 ---
+# Home Assistant's own UI reads the names and descriptions from
+# translations/<lang>.json, but the REST API serves what is written here, and
+# that is what Node-RED shows in its action node. So both carry the text, and
+# every field carries an example so "Load example data" fills a usable call.
+
 send_message:
+  name: Send message
+  description: >-
+    Sends a WhatsApp message: text, an image, audio, a document, a location or
+    a reaction. Returns the message id, so a script can keep acting on it with
+    response_variable.
   fields:
     clientId:
+      name: Client
+      description: Which paired account sends it. "default" unless you added more.
       required: true
       example: default
       selector:
         text:
     to:
+      name: Recipient
+      description: >-
+        Phone number with country code, or a group id ending in @g.us. Copy it
+        from the Chats tab of the Hornero panel; a number typed by hand works
+        too.
       required: true
       example: 391234567890@s.whatsapp.net
       selector:
         text:
     body:
+      name: Message
+      description: >-
+        What to send, as an object. {"text": "Hello"} for a message;
+        {"image": {"url": "https://…"}, "caption": "…"} for a picture;
+        {"audio": {"url": "https://…"}, "ptt": true} for a voice note;
+        {"location": {"degreesLatitude": 0, "degreesLongitude": 0}} for a
+        place; {"react": {"text": "👍", "key": …}} to react to a message.
       required: true
-      example: '{"text": "Hello"}'
+      example: '{"text": "Hello from Home Assistant"}'
       selector:
         object:
     options:
+      name: Options
+      description: >-
+        Extra options passed straight to the messaging library. Mostly used for
+        quoted, which replies to a received message.
       required: false
       advanced: true
+      example: '{"quoted": {}}'
       selector:
         object:
     typing:
+      name: Typing indicator
+      description: >-
+        Leave unset to follow the add-on setting. Set to false to send at once,
+        skipping the "typing…" pause, for an urgent alert.
       required: false
+      example: true
       selector:
         boolean:
 
 send_media:
+  name: Send a camera snapshot or clip
+  description: >-
+    Captures from a camera or image entity and sends it, with no file to save
+    and no URL to expose. Without a duration it sends a still frame; with one
+    it records a clip.
   fields:
     clientId:
+      name: Client
+      description: Which paired account sends it. "default" unless you added more.
       required: true
       example: default
       selector:
         text:
     to:
+      name: Recipient
+      description: Phone number with country code, or a group id ending in @g.us.
       required: true
       example: 391234567890@s.whatsapp.net
       selector:
         text:
     entity_id:
+      name: Camera or image
+      description: The entity to capture from.
       required: true
       example: camera.front_door
       selector:
@@ -47,85 +92,141 @@ send_media:
             - camera
             - image
     caption:
+      name: Caption
+      description: Text sent along with the picture or clip.
       required: false
+      example: Someone is at the door
       selector:
         text:
     duration:
+      name: Clip length
+      description: >-
+        Seconds to record. Leave it out for a still image. Needs a camera with
+        the stream component; a still-image camera can only send snapshots.
       required: false
+      example: 10
       selector:
         number:
           min: 1
           max: 120
           unit_of_measurement: seconds
     lookback:
+      name: Lookback
+      description: >-
+        Also include this many seconds recorded before the call, so the clip
+        shows what led up to the trigger.
       required: false
+      example: 5
       selector:
         number:
           min: 0
           max: 60
           unit_of_measurement: seconds
     typing:
+      name: Recording indicator
+      description: Set to false to send at once, skipping the pause before it.
       required: false
+      example: true
       selector:
         boolean:
 
 mark_read:
+  name: Mark as read
+  description: >-
+    Shows the blue ticks to whoever wrote, and clears the unread badge on your
+    phone. Give either the message id and recipient, or the whole key from a
+    hornero_message event.
   fields:
     clientId:
+      name: Client
+      description: Which paired account received it.
       required: true
       example: default
       selector:
         text:
     messageId:
+      name: Message ID
+      description: The id from a hornero_message event, at key.id.
       required: false
       example: 3EB0ABC123
       selector:
         text:
     to:
+      name: Recipient
+      description: The chat the message came from, at key.remoteJid.
       required: false
       example: 391234567890@s.whatsapp.net
       selector:
         text:
     keys:
+      name: Message keys
+      description: >-
+        A list of whole message keys, to mark several at once. Use this instead
+        of messageId and to.
       required: false
       advanced: true
+      example: '[{"id": "3EB0ABC123", "remoteJid": "391234567890@s.whatsapp.net"}]'
       selector:
         object:
 
 set_status:
+  name: Set the profile status
+  description: The "about" text on the account's profile.
   fields:
     clientId:
+      name: Client
+      description: Which paired account to change.
       required: true
       example: default
       selector:
         text:
     status:
+      name: Status text
+      description: The new text.
       required: true
-      example: Available
+      example: Watched over by Home Assistant
       selector:
         text:
 
 presence_subscribe:
+  name: Follow a contact's presence
+  description: >-
+    Asks WhatsApp for a contact's online and typing state. Required before any
+    hornero_presence event arrives for them.
   fields:
     clientId:
+      name: Client
+      description: Which paired account to subscribe with.
       required: true
       example: default
       selector:
         text:
     userId:
+      name: Contact
+      description: Phone number with country code, or the contact's id.
       required: true
       example: 391234567890@s.whatsapp.net
       selector:
         text:
 
 send_presence_update:
+  name: Send a presence update
+  description: >-
+    Shows the account as online, typing or recording. Sent once; it fades on
+    its own.
   fields:
     clientId:
+      name: Client
+      description: Which paired account to show.
       required: true
       example: default
       selector:
         text:
     type:
+      name: Presence
+      description: >-
+        composing shows "typing…", recording shows "recording audio…",
+        available shows the account as online, paused clears it.
       required: true
       example: composing
       selector:
@@ -137,18 +238,31 @@ send_presence_update:
             - recording
             - paused
     to:
+      name: Chat
+      description: >-
+        The chat to show it in. Leave it out for available and unavailable,
+        which are global.
       required: false
+      example: 391234567890@s.whatsapp.net
       selector:
         text:
 
 send_infinity_presence_update:
+  name: Keep a presence showing
+  description: >-
+    Repeats a presence update until another one replaces it, so it does not
+    fade. Send "paused" or "unavailable" to stop.
   fields:
     clientId:
+      name: Client
+      description: Which paired account to show.
       required: true
       example: default
       selector:
         text:
     type:
+      name: Presence
+      description: The state to keep showing.
       required: true
       example: available
       selector:
@@ -160,6 +274,9 @@ send_infinity_presence_update:
             - recording
             - paused
     to:
+      name: Chat
+      description: The chat to show it in. Leave it out for a global presence.
       required: false
+      example: 391234567890@s.whatsapp.net
       selector:
         text:

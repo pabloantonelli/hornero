@@ -47,7 +47,7 @@
         },
         "body": {
           "name": "Messaggio",
-          "description": "Contenuto del messaggio, ad esempio {\"text\": \"Ciao\"}."
+          "description": "Cosa inviare: {\"text\": \"Ciao\"}, oppure un’immagine, audio, posizione o reazione. Vedi il generatore di snippet nel pannello Hornero."
         },
         "options": {
           "name": "Opzioni",
@@ -81,11 +81,11 @@
         },
         "duration": {
           "name": "Durata del video",
-          "description": "Registra una clip di questi secondi invece di uno scatto."
+          "description": "Registra un clip di questi secondi invece di un fermo immagine. Richiede una telecamera con il componente stream."
         },
         "lookback": {
           "name": "Secondi precedenti",
-          "description": "Include anche questi secondi registrati prima della chiamata."
+          "description": "Include anche questi secondi registrati prima della chiamata, così il clip mostra cosa ha portato all’attivazione."
         },
         "typing": {
           "name": "Indicatore di scrittura",
