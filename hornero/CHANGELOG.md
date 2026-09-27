@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### ✨ Added
+
+- **A Send tab in the panel.** Pick a recipient — the box suggests the allowed
+  senders and whatever the Chats tab has loaded — type a message and send it,
+  or send a camera snapshot. It checks pairing, recipient and delivery end to
+  end without writing an automation first.
+
+### 💅 Changed
+
+- **A new mark.** The icon now carries the bird as well as its nest, on
+  WhatsApp's own green, with the double tick that says what the add-on is for.
+  The old one read as a plain brown dome at small sizes.
+- **The panel works on a phone.** Tabs scroll sideways instead of wrapping into
+  an unreadable block, every field takes the full width, the definition lists
+  stop forcing two columns onto a 360px screen, and the code blocks shrink.
+- **Settings look like settings**: each one is a row with its name, its
+  explanation and a real switch, instead of a checkbox the size of a full stop.
+- **Incoming moved into Settings.** Both are configuration, and seven tabs did
+  not fit on a phone.
+- The connection state now sits in the header, so it reads from any tab, and
+  the allowlist shows each sender's name above its id.
+
 ### 🐛 Fixed
 
 - **The actions carried no documentation outside Home Assistant's own UI.** In
@@ -11,6 +33,8 @@
   Assistant frontend reads; the REST API that Node-RED queries serves
   `services.yaml`. That file now carries a name, a description and an example
   for all seven actions and every one of their fields.
+- **The snippet builder was still English**: its field labels and every output
+  block's title and explanation are now translated into all six languages.
 
 ## 4.0.2
 

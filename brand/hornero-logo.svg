@@ -2,32 +2,46 @@
   <!-- Square canvas so the renderer centres it; the usable logo is the middle
        750x300 band, cropped out when exporting. -->
   <defs>
-    <linearGradient id="clay" x1="0.15" y1="0" x2="0.85" y2="1">
-      <stop offset="0%" stop-color="#D4774E"/>
-      <stop offset="55%" stop-color="#B65C38"/>
-      <stop offset="100%" stop-color="#8E4227"/>
+    <linearGradient id="clay" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#E5B08C"/>
+      <stop offset="100%" stop-color="#AE5533"/>
     </linearGradient>
-    <mask id="doorway">
+    <mask id="door">
       <rect width="750" height="750" fill="#fff"/>
-      <path d="M150 457 v-64 a26 26 0 0 1 52 0 v64 Z" fill="#000"/>
+      <path d="M118 462 v-50 a30 30 0 0 1 60 0 v50 Z" fill="#000"/>
     </mask>
   </defs>
 
-  <g mask="url(#doorway)">
-    <path d="M42 457 a98 133 0 0 1 196 0 Z" fill="url(#clay)"/>
-    <path d="M65 457 a75 104 0 0 1 150 0" fill="none" stroke="#7C3F26"
-          stroke-width="5" opacity="0.24" stroke-linecap="round"/>
-    <path d="M88 457 a52 73 0 0 1 104 0" fill="none" stroke="#7C3F26"
-          stroke-width="4" opacity="0.18" stroke-linecap="round"/>
+  <g mask="url(#door)">
+    <path d="M50 462 a98 111 0 0 1 196 0 Z" fill="url(#clay)"/>
+    <path d="M74 462 a74 84 0 0 1 148 0" fill="none" stroke="#8E4227"
+          stroke-width="6" opacity="0.26" stroke-linecap="round"/>
+    <path d="M99 462 a49 56 0 0 1 98 0" fill="none" stroke="#8E4227"
+          stroke-width="5" opacity="0.2" stroke-linecap="round"/>
+  </g>
+  <path d="M118 462 v-50 a30 30 0 0 1 60 0 v50 Z" fill="#4A2412"/>
+  <rect x="40" y="457" width="216" height="13" rx="6.5" fill="#8E4227"/>
+
+  <g transform="translate(226 395) scale(0.6)">
+    <path d="M24 6 L92 -22 L98 -2 L86 6 L96 22 L30 32 Z" fill="#A34A26"/>
+    <ellipse cx="0" cy="0" rx="48" ry="40" transform="rotate(-12)" fill="#C86238"/>
+    <path d="M-20 -16 a46 32 0 0 1 50 22 a42 28 0 0 1 -46 -6 Z" fill="#A34A26" opacity="0.45"/>
+    <circle cx="-40" cy="-31" r="28" fill="#D06B3E"/>
+    <path d="M-17 6 a30 26 0 0 1 -30 22 a26 30 0 0 1 -8 -34 a34 30 0 0 0 38 12 Z" fill="#F4DCC2"/>
+    <circle cx="-50" cy="-37" r="6.5" fill="#33190C"/>
+    <path d="M-64 -27 L-100 -18 L-64 -10 Z" fill="#33190C"/>
+    <path d="M-10 36 v20" stroke="#8E4227" stroke-width="9" stroke-linecap="round"/>
   </g>
 
-  <path d="M150 457 v-64 a26 26 0 0 1 52 0 v64 Z" fill="#48230F"/>
-  <path d="M150 457 v-64 a26 26 0 0 1 52 0" fill="none" stroke="#7C3F26"
-        stroke-width="6" stroke-linecap="round"/>
-  <rect x="30" y="453" width="220" height="13" rx="6.5" fill="#7C3F26"/>
+  <!-- the double tick ties the mark to what it does: messaging -->
+  <g transform="translate(508 262) scale(0.42)" stroke="#1FA365" stroke-width="20"
+     stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M0 48 L26 76 L84 4"/>
+    <path d="M88 48 L114 76 L172 4"/>
+  </g>
 
-  <text x="288" y="404" font-family="Avenir Next, Helvetica Neue, Helvetica, Arial, sans-serif"
+  <text x="292" y="422" font-family="Avenir Next, Helvetica Neue, Helvetica, Arial, sans-serif"
         font-size="106" font-weight="600" fill="#7C3F26">Hornero</text>
-  <text x="292" y="450" font-family="Avenir Next, Helvetica Neue, Helvetica, Arial, sans-serif"
-        font-size="29" font-weight="500" fill="#B65C38" letter-spacing="3">FOR HOME ASSISTANT</text>
+  <text x="296" y="462" font-family="Avenir Next, Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="27" font-weight="500" fill="#B65C38" letter-spacing="3">FOR HOME ASSISTANT</text>
 </svg>

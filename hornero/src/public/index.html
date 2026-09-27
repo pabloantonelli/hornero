@@ -4,7 +4,7 @@
 <title>Hornero</title>
 <link
   rel="icon"
-  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23F1E0CE'/%3E%3Cpath d='M76 430 a180 244 0 0 1 360 0 Z' fill='%23B65C38'/%3E%3Cpath d='M274 430 v-116 a48 48 0 0 1 96 0 v116 Z' fill='%2348230F'/%3E%3C/svg%3E"
+  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%2315A06B'/%3E%3Cpath d='M56 420 a164 186 0 0 1 328 0 Z' fill='%23D4885F'/%3E%3Cpath d='M170 420 v-84 a50 50 0 0 1 100 0 v84 Z' fill='%234A2412'/%3E%3Cg stroke='%23F2FFF8' stroke-width='34' stroke-linecap='round' stroke-linejoin='round' fill='none'%3E%3Cpath d='M276 144 L302 172 L360 100'/%3E%3C/g%3E%3C/svg%3E"
 />
 <style>
   :root {
@@ -16,6 +16,11 @@
     --border: #e3e6eb;
     --accent: #b65c38;
     --clay: #b65c38;
+    --green: #12a06b;
+    --green-soft: rgba(18, 160, 107, 0.12);
+    --shadow:
+      0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.06);
+    --radius: 14px;
     --accent-fg: #fff;
     --danger: #d93025;
     --warn: #e8a33d;
@@ -29,6 +34,9 @@
       --muted: #9aa0a6;
       --border: #2e3238;
       --code-bg: #15181c;
+      --green: #2ac98a;
+      --green-soft: rgba(42, 201, 138, 0.16);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.28);
     }
   }
   * {
@@ -37,6 +45,7 @@
   body {
     margin: 0;
     padding: 20px 16px 40px;
+    -webkit-text-size-adjust: 100%;
     background: var(--bg);
     color: var(--fg);
     font:
@@ -52,33 +61,79 @@
   }
   header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
+  }
+  header .mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    flex: 0 0 auto;
+  }
+  header .titles {
+    min-width: 0;
+    flex: 1;
   }
   h1 {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     margin: 0;
+    letter-spacing: -0.01em;
   }
   .ver {
     color: var(--muted);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
+  }
+  /* The overall connection state, so it is legible from any tab. */
+  .top-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    flex: 0 0 auto;
   }
 
+  /* Tabs scroll sideways rather than wrapping into an unreadable block, and
+     each keeps its icon so the labels can shrink on a phone. */
   nav {
     display: flex;
     gap: 4px;
     margin-bottom: 18px;
     border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  nav::-webkit-scrollbar {
+    display: none;
   }
   nav button {
     background: none;
     border: 0;
     border-bottom: 2px solid transparent;
-    padding: 10px 14px;
+    padding: 10px 12px;
     font: inherit;
+    font-size: 0.92rem;
     color: var(--muted);
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  nav button svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+  }
+  nav button:hover {
+    color: var(--fg);
   }
   nav button[aria-selected="true"] {
     color: var(--fg);
@@ -89,9 +144,17 @@
   .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: 18px;
     margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card > h3:first-child {
+    margin-top: 0;
+  }
+  .card h3 {
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
   }
   .head {
     display: flex;
@@ -111,8 +174,8 @@
     flex: 0 0 auto;
   }
   .dot.on {
-    background: var(--accent);
-    box-shadow: 0 0 0 3px rgba(182, 92, 56, 0.22);
+    background: var(--green);
+    box-shadow: 0 0 0 3px var(--green-soft);
   }
   .dot.off {
     background: var(--danger);
@@ -185,6 +248,17 @@
     flex: 1 1 200px;
     min-width: 0;
   }
+  /* A field owns its control's width, so nothing sits half-empty in a row. */
+  .field > input,
+  .field > select,
+  .field > textarea {
+    width: 100%;
+    display: block;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 76px;
+  }
 
   .qr {
     margin-top: 16px;
@@ -215,8 +289,9 @@
   }
 
   .list {
-    max-height: 420px;
+    max-height: min(420px, 55vh);
     overflow-y: auto;
+    overscroll-behavior: contain;
     margin-top: 12px;
   }
   .chat {
@@ -317,39 +392,370 @@
   [hidden] {
     display: none !important;
   }
+
+  /* ------------------------------------------------------------ phones */
+  @media (max-width: 620px) {
+    body {
+      padding: 14px 12px 32px;
+    }
+    .card {
+      padding: 14px;
+      border-radius: 12px;
+    }
+    h1 {
+      font-size: 1.15rem;
+    }
+    header .mark {
+      width: 32px;
+      height: 32px;
+    }
+    /* The state pill drops under the title instead of squeezing it. */
+    header {
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+    header .titles {
+      flex: 1 1 60%;
+    }
+    nav {
+      /* Bleed to the screen edges so the scroll reads as scrollable. */
+      margin-left: -12px;
+      margin-right: -12px;
+      padding: 0 12px;
+    }
+    nav button {
+      padding: 10px 9px;
+      font-size: 0.85rem;
+    }
+    /* Every field takes the full width: a two-column row at 360px is unusable. */
+    .row > input,
+    .row > select,
+    .row > button,
+    .row > .field {
+      flex: 1 1 100%;
+    }
+    .row > button {
+      width: 100%;
+    }
+    dl {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    dt {
+      margin-top: 8px;
+    }
+    dl code {
+      word-break: break-all;
+    }
+    pre {
+      font-size: 0.76rem;
+      padding: 12px;
+    }
+    .code {
+      font-size: 1.3rem;
+      letter-spacing: 0.18em;
+    }
+    .setting {
+      gap: 10px;
+    }
+  }
+
+  /* A setting is a label, a hint and a control; on a phone the control stays
+     on the right rather than dropping below its own label. */
+  .setting {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .setting:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .setting .field {
+    flex: 1 1 auto;
+  }
+  .setting label {
+    margin-bottom: 2px;
+    color: var(--fg);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .setting .control {
+    flex: 0 0 auto;
+    padding-top: 2px;
+  }
+  .setting .control input[type="number"],
+  .setting .control select {
+    width: 108px;
+    flex: none;
+  }
+
+  /* A real switch, instead of a checkbox the size of a full stop. */
+  .toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 26px;
+    flex: none;
+  }
+  .toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .toggle span {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 999px;
+    transition: background 0.15s;
+  }
+  .toggle span::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.15s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  .toggle input:checked + span {
+    background: var(--green);
+  }
+  .toggle input:checked + span::after {
+    transform: translateX(18px);
+  }
+  .toggle input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  button.ghost {
+    background: none;
+    border-color: transparent;
+    color: var(--muted);
+  }
+  button.ghost:hover {
+    color: var(--fg);
+    background: var(--bg);
+  }
+
+  /* Status chips shared by the message log and the client cards. */
+  .chip {
+    font-size: 0.7rem;
+    border-radius: 999px;
+    padding: 2px 9px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .chip.ok {
+    color: var(--green);
+    border-color: transparent;
+    background: var(--green-soft);
+  }
+  .chip.bad {
+    color: var(--danger);
+    border-color: transparent;
+    background: rgba(217, 48, 37, 0.12);
+  }
 </style>
 
 <div class="wrap">
   <header>
-    <h1>Hornero</h1>
-    <span class="ver" id="version"></span>
+    <svg class="mark" viewBox="0 0 512 512" aria-hidden="true">
+      <rect width="512" height="512" rx="112" fill="#12a06b" />
+      <path d="M56 420 a164 186 0 0 1 328 0 Z" fill="#d4885f" />
+      <path d="M170 420 v-84 a50 50 0 0 1 100 0 v84 Z" fill="#4a2412" />
+      <path
+        d="M276 150 L302 178 L360 106"
+        stroke="#f2fff8"
+        stroke-width="34"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"
+      />
+    </svg>
+    <div class="titles">
+      <h1>Hornero</h1>
+      <span class="ver" id="version"></span>
+    </div>
+    <span class="top-state" id="top-state" hidden>
+      <span class="dot" id="top-dot"></span>
+      <span id="top-text"></span>
+    </span>
   </header>
 
   <nav>
-    <button data-tab="status" data-i18n="tab_status" aria-selected="true">
-      Status
+    <button data-tab="status" aria-selected="true">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 20v-6M5 20V10M19 20V4" />
+      </svg>
+      <span data-i18n="tab_status">Status</span>
     </button>
-    <button data-tab="chats" data-i18n="tab_chats" aria-selected="false">
-      Groups &amp; contacts
+    <button data-tab="send" aria-selected="false">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 12l16-8-7 16-2-6-7-2z" />
+      </svg>
+      <span data-i18n="tab_send">Send</span>
     </button>
-    <button data-tab="messages" data-i18n="tab_messages" aria-selected="false">
-      Messages
+    <button data-tab="chats" aria-selected="false">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M17 20a5 5 0 0 0-10 0" />
+        <circle cx="12" cy="9" r="3.2" />
+        <path d="M4.5 19a3.6 3.6 0 0 1 3-3.4M19.5 19a3.6 3.6 0 0 0-3-3.4" />
+      </svg>
+      <span data-i18n="tab_chats">Groups &amp; contacts</span>
     </button>
-    <button data-tab="builder" data-i18n="tab_builder" aria-selected="false">
-      Snippet builder
+    <button data-tab="messages" aria-selected="false">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M20 12a8 8 0 1 1-3.2-6.4" />
+        <path d="M8 12l3 3 6-7" />
+      </svg>
+      <span data-i18n="tab_messages">Messages</span>
     </button>
-    <button data-tab="incoming" data-i18n="tab_incoming" aria-selected="false">
-      Incoming
+    <button data-tab="builder" aria-selected="false">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path
+          d="M9 7H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 7h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4M10 15l4-6"
+        />
+      </svg>
+      <span data-i18n="tab_builder">Snippet builder</span>
     </button>
-    <button data-tab="settings" data-i18n="tab_settings" aria-selected="false">
-      Settings
+    <button data-tab="settings" aria-selected="false">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="3" />
+        <path
+          d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10 1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"
+        />
+      </svg>
+      <span data-i18n="tab_settings">Settings</span>
     </button>
-    <button data-tab="help" data-i18n="tab_help" aria-selected="false">
-      Help
+    <button data-tab="help" aria-selected="false">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.4" />
+        <path d="M12 17h.01" />
+      </svg>
+      <span data-i18n="tab_help">Help</span>
     </button>
   </nav>
 
   <section data-panel="status"><div id="clients"></div></section>
+
+  <section data-panel="send" hidden>
+    <div class="card">
+      <h3 data-i18n="send_title">Send a message</h3>
+      <p class="msg" style="margin-top: 0" data-i18n="send_hint">
+        Checks the whole path end to end, without writing an automation first.
+      </p>
+      <div class="row">
+        <div class="field">
+          <label for="send-client" data-i18n="b_client">Client</label>
+          <select id="send-client"></select>
+        </div>
+        <div class="field">
+          <label for="send-to" data-i18n="send_to">Recipient</label>
+          <input
+            type="text"
+            id="send-to"
+            list="send-suggestions"
+            data-i18n-placeholder="send_to_ph"
+          />
+          <datalist id="send-suggestions"></datalist>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="send-text" data-i18n="send_text">Message</label>
+          <textarea id="send-text" rows="3" style="width: 100%"></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <button class="primary" id="send-go" data-i18n="send_button">
+          Send
+        </button>
+        <button class="ghost" id="send-snapshot" data-i18n="send_snapshot">
+          Send a camera snapshot
+        </button>
+      </div>
+      <div class="row" id="send-camera-row" hidden>
+        <div class="field">
+          <label for="send-entity" data-i18n="send_entity">Camera entity</label>
+          <input type="text" id="send-entity" placeholder="camera.front_door" />
+        </div>
+        <button class="primary" id="send-camera-go" data-i18n="send_button">
+          Send
+        </button>
+      </div>
+      <p class="msg" id="send-msg"></p>
+    </div>
+  </section>
 
   <section data-panel="chats" hidden>
     <div class="card">
@@ -425,11 +831,16 @@
     </div>
   </section>
 
-  <section data-panel="incoming" hidden>
+  <section data-panel="settings" hidden>
     <div class="card">
-      <h3 style="margin-top: 0" data-i18n="who_triggers">
-        Who may trigger automations
-      </h3>
+      <h3 data-i18n="behaviour">Behaviour</h3>
+      <div id="settings-form"></div>
+      <p class="msg" id="settings-msg"></p>
+      <p class="msg" data-i18n-html="settings_hint"></p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="who_triggers">Who may trigger automations</h3>
       <p class="msg" id="allow-state"></p>
       <div class="list" id="allow-list"></div>
 
@@ -442,20 +853,11 @@
         <input
           type="text"
           id="allow-input"
-          placeholder="Phone number or group ID"
+          data-i18n-placeholder="send_to_ph"
         />
         <button class="primary" id="allow-add" data-i18n="add">Add</button>
       </div>
       <p class="msg" data-i18n-html="incoming_hint"></p>
-    </div>
-  </section>
-
-  <section data-panel="settings" hidden>
-    <div class="card">
-      <h3 style="margin-top: 0" data-i18n="behaviour">Behaviour</h3>
-      <div id="settings-form"></div>
-      <p class="msg" id="settings-msg"></p>
-      <p class="msg" data-i18n-html="settings_hint"></p>
     </div>
   </section>
 
@@ -574,9 +976,52 @@
   const STRINGS = {
     en: {
       tab_status: "Status",
+      f_to: "Recipient (number or group ID)",
+      f_to_opt: "Recipient (optional)",
+      f_text: "Message",
+      f_entity: "Camera or image entity",
+      f_caption: "Caption (optional)",
+      f_duration: "Clip seconds (empty = snapshot)",
+      f_lookback: "Lookback seconds (optional)",
+      f_image_url: "Image URL",
+      f_audio_url: "Audio URL",
+      f_ptt: "Send as voice note (true/false)",
+      f_lat: "Latitude",
+      f_lng: "Longitude",
+      f_type: "available | unavailable | composing | recording | paused",
+      f_infinity: "Keep sending it (true/false)",
+      f_status: "New profile status",
+      o_ha_hint: "Paste into an automation or script in YAML mode.",
+      o_ha_event:
+        "An automation triggered by the event. The payload is in <code>trigger.event.data</code>.",
+      o_nr_manual: "Node-RED — fill in by hand",
+      o_nr_manual_hint:
+        "On a <code>call service</code> node: set the action, then paste the data into the <code>Data</code> field.",
+      o_nr_manual_event:
+        "On an <code>events: all</code> node. The event data arrives in <code>msg.payload</code>.",
+      o_nr_import: "Node-RED — import",
+      o_nr_import_hint:
+        "Or copy this, press <code>Ctrl+I</code> in Node-RED and paste to import the node already configured. Open it once to pick your Home Assistant server.",
+      o_nr_import_event:
+        "Copy, then press <code>Ctrl+I</code> in Node-RED and paste to import the node.",
+      o_curl_hint:
+        "Only needed to call the add-on directly, from outside Home Assistant.",
+      tab_send: "Send",
+      send_title: "Send a message",
+      send_hint:
+        "Checks the whole path end to end — pairing, recipient and delivery — without writing an automation first.",
+      send_to: "Recipient",
+      send_to_ph: "Phone number or group ID",
+      send_text: "Message",
+      send_button: "Send",
+      send_snapshot: "Send a camera snapshot instead",
+      send_entity: "Camera or image entity",
+      send_missing: "Fill in the recipient and the message first.",
+      send_sending: "Sending…",
+      send_capturing: "Capturing and sending…",
+      send_ok: "Sent.",
       tab_chats: "Groups & contacts",
       tab_builder: "Snippet builder",
-      tab_incoming: "Incoming",
       tab_settings: "Settings",
       tab_help: "Help",
       connected: "Connected",
@@ -705,9 +1150,52 @@
     },
     es: {
       tab_status: "Estado",
+      f_to: "Destinatario (número o ID de grupo)",
+      f_to_opt: "Destinatario (opcional)",
+      f_text: "Mensaje",
+      f_entity: "Entidad de cámara o imagen",
+      f_caption: "Texto al pie (opcional)",
+      f_duration: "Segundos de video (vacío = foto)",
+      f_lookback: "Segundos previos (opcional)",
+      f_image_url: "URL de la imagen",
+      f_audio_url: "URL del audio",
+      f_ptt: "Enviar como nota de voz (true/false)",
+      f_lat: "Latitud",
+      f_lng: "Longitud",
+      f_type: "available | unavailable | composing | recording | paused",
+      f_infinity: "Mantenerlo activo (true/false)",
+      f_status: "Nuevo estado del perfil",
+      o_ha_hint: "Pegalo en una automatización o script en modo YAML.",
+      o_ha_event:
+        "Una automatización disparada por el evento. Los datos están en <code>trigger.event.data</code>.",
+      o_nr_manual: "Node-RED — a mano",
+      o_nr_manual_hint:
+        "En un nodo <code>call service</code>: elegí la acción y pegá los datos en el campo <code>Data</code>.",
+      o_nr_manual_event:
+        "En un nodo <code>events: all</code>. Los datos del evento llegan en <code>msg.payload</code>.",
+      o_nr_import: "Node-RED — importar",
+      o_nr_import_hint:
+        "O copiá esto, apretá <code>Ctrl+I</code> en Node-RED y pegalo para importar el nodo ya configurado. Abrilo una vez para elegir tu servidor de Home Assistant.",
+      o_nr_import_event:
+        "Copialo, apretá <code>Ctrl+I</code> en Node-RED y pegalo para importar el nodo.",
+      o_curl_hint:
+        "Solo hace falta para llamar al add-on directamente, desde fuera de Home Assistant.",
+      tab_send: "Enviar",
+      send_title: "Enviar un mensaje",
+      send_hint:
+        "Prueba el camino completo de punta a punta —vinculación, destinatario y entrega— sin escribir una automatización antes.",
+      send_to: "Destinatario",
+      send_to_ph: "Número de teléfono o ID de grupo",
+      send_text: "Mensaje",
+      send_button: "Enviar",
+      send_snapshot: "Enviar una foto de una cámara",
+      send_entity: "Entidad de cámara o imagen",
+      send_missing: "Completá primero el destinatario y el mensaje.",
+      send_sending: "Enviando…",
+      send_capturing: "Capturando y enviando…",
+      send_ok: "Enviado.",
       tab_chats: "Grupos y contactos",
       tab_builder: "Generador",
-      tab_incoming: "Entrantes",
       tab_settings: "Ajustes",
       tab_help: "Ayuda",
       connected: "Conectado",
@@ -835,9 +1323,52 @@
     },
     "pt-BR": {
       tab_status: "Status",
+      f_to: "Destinatário (número ou ID de grupo)",
+      f_to_opt: "Destinatário (opcional)",
+      f_text: "Mensagem",
+      f_entity: "Entidade de câmara ou imagem",
+      f_caption: "Legenda (opcional)",
+      f_duration: "Segundos de vídeo (vazio = foto)",
+      f_lookback: "Segundos anteriores (opcional)",
+      f_image_url: "URL da imagem",
+      f_audio_url: "URL do áudio",
+      f_ptt: "Enviar como mensagem de voz (true/false)",
+      f_lat: "Latitude",
+      f_lng: "Longitude",
+      f_type: "available | unavailable | composing | recording | paused",
+      f_infinity: "Manter ativo (true/false)",
+      f_status: "Novo estado do perfil",
+      o_ha_hint: "Cole numa automação ou script em modo YAML.",
+      o_ha_event:
+        "Uma automação disparada pelo evento. Os dados estão em <code>trigger.event.data</code>.",
+      o_nr_manual: "Node-RED — preencher à mão",
+      o_nr_manual_hint:
+        "Num nó <code>call service</code>: escolha a ação e cole os dados no campo <code>Data</code>.",
+      o_nr_manual_event:
+        "Num nó <code>events: all</code>. Os dados do evento chegam em <code>msg.payload</code>.",
+      o_nr_import: "Node-RED — importar",
+      o_nr_import_hint:
+        "Ou copie isto, carregue em <code>Ctrl+I</code> no Node-RED e cole para importar o nó já configurado. Abra-o uma vez para escolher o seu servidor Home Assistant.",
+      o_nr_import_event:
+        "Copie, carregue em <code>Ctrl+I</code> no Node-RED e cole para importar o nó.",
+      o_curl_hint:
+        "Só é preciso para chamar o add-on diretamente, de fora do Home Assistant.",
+      tab_send: "Enviar",
+      send_title: "Enviar uma mensagem",
+      send_hint:
+        "Testa o caminho completo de ponta a ponta — emparelhamento, destinatário e entrega — sem escrever uma automação antes.",
+      send_to: "Destinatário",
+      send_to_ph: "Número de telefone ou ID de grupo",
+      send_text: "Mensagem",
+      send_button: "Enviar",
+      send_snapshot: "Enviar uma foto de uma câmara",
+      send_entity: "Entidade de câmara ou imagem",
+      send_missing: "Preencha primeiro o destinatário e a mensagem.",
+      send_sending: "A enviar…",
+      send_capturing: "A capturar e enviar…",
+      send_ok: "Enviado.",
       tab_chats: "Grupos e contatos",
       tab_builder: "Gerador",
-      tab_incoming: "Recebidas",
       tab_settings: "Ajustes",
       tab_help: "Ajuda",
       connected: "Conectado",
@@ -965,9 +1496,52 @@
     },
     de: {
       tab_status: "Status",
+      f_to: "Empfänger (Nummer oder Gruppen-ID)",
+      f_to_opt: "Empfänger (optional)",
+      f_text: "Nachricht",
+      f_entity: "Kamera- oder Bild-Entität",
+      f_caption: "Bildunterschrift (optional)",
+      f_duration: "Clip-Sekunden (leer = Standbild)",
+      f_lookback: "Sekunden davor (optional)",
+      f_image_url: "Bild-URL",
+      f_audio_url: "Audio-URL",
+      f_ptt: "Als Sprachnachricht senden (true/false)",
+      f_lat: "Breitengrad",
+      f_lng: "Längengrad",
+      f_type: "available | unavailable | composing | recording | paused",
+      f_infinity: "Dauerhaft senden (true/false)",
+      f_status: "Neuer Profilstatus",
+      o_ha_hint: "In eine Automation oder ein Skript im YAML-Modus einfügen.",
+      o_ha_event:
+        "Eine Automation, die das Ereignis auslöst. Die Daten stehen in <code>trigger.event.data</code>.",
+      o_nr_manual: "Node-RED — von Hand ausfüllen",
+      o_nr_manual_hint:
+        "In einem <code>call service</code>-Node: Aktion wählen und die Daten ins Feld <code>Data</code> einfügen.",
+      o_nr_manual_event:
+        "In einem <code>events: all</code>-Node. Die Ereignisdaten kommen in <code>msg.payload</code> an.",
+      o_nr_import: "Node-RED — importieren",
+      o_nr_import_hint:
+        "Oder dies kopieren, in Node-RED <code>Strg+I</code> drücken und einfügen, um den fertig konfigurierten Node zu importieren. Einmal öffnen, um den Home-Assistant-Server zu wählen.",
+      o_nr_import_event:
+        "Kopieren, in Node-RED <code>Strg+I</code> drücken und einfügen, um den Node zu importieren.",
+      o_curl_hint:
+        "Nur nötig, um das Add-on direkt von außerhalb von Home Assistant aufzurufen.",
+      tab_send: "Senden",
+      send_title: "Nachricht senden",
+      send_hint:
+        "Prüft den ganzen Weg von Anfang bis Ende — Kopplung, Empfänger und Zustellung — ohne vorher eine Automation zu schreiben.",
+      send_to: "Empfänger",
+      send_to_ph: "Telefonnummer oder Gruppen-ID",
+      send_text: "Nachricht",
+      send_button: "Senden",
+      send_snapshot: "Stattdessen ein Kamerabild senden",
+      send_entity: "Kamera- oder Bild-Entität",
+      send_missing: "Bitte zuerst Empfänger und Nachricht ausfüllen.",
+      send_sending: "Wird gesendet…",
+      send_capturing: "Aufnehmen und senden…",
+      send_ok: "Gesendet.",
       tab_chats: "Gruppen & Kontakte",
       tab_builder: "Snippet-Generator",
-      tab_incoming: "Eingehend",
       tab_settings: "Einstellungen",
       tab_help: "Hilfe",
       connected: "Verbunden",
@@ -1095,9 +1669,52 @@
     },
     fr: {
       tab_status: "Statut",
+      f_to: "Destinataire (numéro ou ID de groupe)",
+      f_to_opt: "Destinataire (facultatif)",
+      f_text: "Message",
+      f_entity: "Entité caméra ou image",
+      f_caption: "Légende (facultatif)",
+      f_duration: "Secondes de clip (vide = photo)",
+      f_lookback: "Secondes précédentes (facultatif)",
+      f_image_url: "URL de l’image",
+      f_audio_url: "URL de l’audio",
+      f_ptt: "Envoyer en note vocale (true/false)",
+      f_lat: "Latitude",
+      f_lng: "Longitude",
+      f_type: "available | unavailable | composing | recording | paused",
+      f_infinity: "La maintenir (true/false)",
+      f_status: "Nouveau statut du profil",
+      o_ha_hint: "Collez-le dans une automatisation ou un script en mode YAML.",
+      o_ha_event:
+        "Une automatisation déclenchée par l’événement. Les données sont dans <code>trigger.event.data</code>.",
+      o_nr_manual: "Node-RED — à remplir à la main",
+      o_nr_manual_hint:
+        "Sur un nœud <code>call service</code> : choisissez l’action et collez les données dans le champ <code>Data</code>.",
+      o_nr_manual_event:
+        "Sur un nœud <code>events: all</code>. Les données arrivent dans <code>msg.payload</code>.",
+      o_nr_import: "Node-RED — importer",
+      o_nr_import_hint:
+        "Ou copiez ceci, appuyez sur <code>Ctrl+I</code> dans Node-RED et collez pour importer le nœud déjà configuré. Ouvrez-le une fois pour choisir votre serveur Home Assistant.",
+      o_nr_import_event:
+        "Copiez, puis appuyez sur <code>Ctrl+I</code> dans Node-RED et collez pour importer le nœud.",
+      o_curl_hint:
+        "Utile seulement pour appeler l’add-on directement, depuis l’extérieur de Home Assistant.",
+      tab_send: "Envoyer",
+      send_title: "Envoyer un message",
+      send_hint:
+        "Teste tout le trajet de bout en bout — appairage, destinataire et remise — sans écrire d’abord une automatisation.",
+      send_to: "Destinataire",
+      send_to_ph: "Numéro de téléphone ou ID de groupe",
+      send_text: "Message",
+      send_button: "Envoyer",
+      send_snapshot: "Envoyer plutôt une image de caméra",
+      send_entity: "Entité caméra ou image",
+      send_missing: "Renseignez d’abord le destinataire et le message.",
+      send_sending: "Envoi…",
+      send_capturing: "Capture et envoi…",
+      send_ok: "Envoyé.",
       tab_chats: "Groupes et contacts",
       tab_builder: "Générateur",
-      tab_incoming: "Entrants",
       tab_settings: "Réglages",
       tab_help: "Aide",
       connected: "Connecté",
@@ -1228,9 +1845,52 @@
     },
     it: {
       tab_status: "Stato",
+      f_to: "Destinatario (numero o ID gruppo)",
+      f_to_opt: "Destinatario (facoltativo)",
+      f_text: "Messaggio",
+      f_entity: "Entità telecamera o immagine",
+      f_caption: "Didascalia (facoltativa)",
+      f_duration: "Secondi di clip (vuoto = foto)",
+      f_lookback: "Secondi precedenti (facoltativo)",
+      f_image_url: "URL dell’immagine",
+      f_audio_url: "URL dell’audio",
+      f_ptt: "Invia come messaggio vocale (true/false)",
+      f_lat: "Latitudine",
+      f_lng: "Longitudine",
+      f_type: "available | unavailable | composing | recording | paused",
+      f_infinity: "Mantenerlo attivo (true/false)",
+      f_status: "Nuovo stato del profilo",
+      o_ha_hint: "Incollalo in un’automazione o script in modalità YAML.",
+      o_ha_event:
+        "Un’automazione attivata dall’evento. I dati sono in <code>trigger.event.data</code>.",
+      o_nr_manual: "Node-RED — da compilare a mano",
+      o_nr_manual_hint:
+        "In un nodo <code>call service</code>: scegli l’azione e incolla i dati nel campo <code>Data</code>.",
+      o_nr_manual_event:
+        "In un nodo <code>events: all</code>. I dati dell’evento arrivano in <code>msg.payload</code>.",
+      o_nr_import: "Node-RED — importa",
+      o_nr_import_hint:
+        "Oppure copia questo, premi <code>Ctrl+I</code> in Node-RED e incolla per importare il nodo già configurato. Aprilo una volta per scegliere il tuo server Home Assistant.",
+      o_nr_import_event:
+        "Copia, poi premi <code>Ctrl+I</code> in Node-RED e incolla per importare il nodo.",
+      o_curl_hint:
+        "Serve solo per chiamare l’add-on direttamente, da fuori Home Assistant.",
+      tab_send: "Invia",
+      send_title: "Invia un messaggio",
+      send_hint:
+        "Prova l’intero percorso da capo a fondo — abbinamento, destinatario e consegna — senza prima scrivere un’automazione.",
+      send_to: "Destinatario",
+      send_to_ph: "Numero di telefono o ID gruppo",
+      send_text: "Messaggio",
+      send_button: "Invia",
+      send_snapshot: "Invia invece uno scatto della telecamera",
+      send_entity: "Entità telecamera o immagine",
+      send_missing: "Compila prima destinatario e messaggio.",
+      send_sending: "Invio…",
+      send_capturing: "Acquisizione e invio…",
+      send_ok: "Inviato.",
       tab_chats: "Gruppi e contatti",
       tab_builder: "Generatore",
-      tab_incoming: "In arrivo",
       tab_settings: "Impostazioni",
       tab_help: "Guida",
       connected: "Connesso",
@@ -1397,6 +2057,13 @@
       return data;
     });
 
+  const post = (path, body) =>
+    api(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
   const esc = (v) =>
     String(v).replace(
       /[&<>"']/g,
@@ -1423,8 +2090,11 @@
     document.querySelectorAll("[data-panel]").forEach((p) => {
       p.hidden = p.dataset.panel !== btn.dataset.tab;
     });
-    if (btn.dataset.tab === "incoming") refreshRecent();
-    if (btn.dataset.tab === "settings") loadSettings({ force: true });
+    if (btn.dataset.tab === "settings") {
+      refreshRecent();
+      loadSettings({ force: true });
+    }
+    if (btn.dataset.tab === "send") fillSendSuggestions();
     if (btn.dataset.tab === "messages") refreshMessages({ force: true });
   });
 
@@ -1458,6 +2128,31 @@
       .join("");
 
     clients.forEach(renderClientBody);
+    renderTopState(clients);
+    fillSendSuggestions();
+  }
+
+  /** The connection state, kept in the header so it reads from every tab. */
+  function renderTopState(clients) {
+    const box = document.getElementById("top-state");
+    if (!clients.length) {
+      box.hidden = true;
+      return;
+    }
+    const connected = clients.filter((c) => c.connected).length;
+    const waiting = clients.some((c) => c.reconnecting);
+    const cls = connected ? "on" : waiting ? "wait" : "off";
+    const label = connected
+      ? clients.length > 1
+        ? `${connected}/${clients.length} ${t("connected")}`
+        : t("connected")
+      : waiting
+        ? t("reconnecting")
+        : t("not_paired");
+
+    box.hidden = false;
+    document.getElementById("top-dot").className = `dot ${cls}`;
+    document.getElementById("top-text").textContent = label;
   }
 
   async function renderClientBody(c) {
@@ -1622,44 +2317,40 @@
 
   /* ------------------------------------------------------------- builder */
 
+  // The label is a dictionary key, resolved when the fields are rendered.
   const FIELDS = {
     text: [
-      ["to", "Recipient (number or group ID)", "text", "5491111111111"],
-      ["text", "Message", "text", "Hello from Home Assistant"],
+      ["to", "f_to", "text", "5491111111111"],
+      ["text", "f_text", "text", "Hello from Home Assistant"],
     ],
     camera: [
-      ["to", "Recipient (number or group ID)", "text", "5491111111111"],
-      ["entity", "Camera or image entity", "text", "camera.front_door"],
-      ["caption", "Caption (optional)", "text", "Someone is at the door"],
-      ["duration", "Clip seconds (empty = snapshot)", "number", ""],
-      ["lookback", "Lookback seconds (optional)", "number", ""],
+      ["to", "f_to", "text", "5491111111111"],
+      ["entity", "f_entity", "text", "camera.front_door"],
+      ["caption", "f_caption", "text", "Someone is at the door"],
+      ["duration", "f_duration", "number", ""],
+      ["lookback", "f_lookback", "number", ""],
     ],
     image: [
-      ["to", "Recipient (number or group ID)", "text", "5491111111111"],
-      ["url", "Image URL", "text", "https://example.com/photo.jpg"],
-      ["caption", "Caption (optional)", "text", ""],
+      ["to", "f_to", "text", "5491111111111"],
+      ["url", "f_image_url", "text", "https://example.com/photo.jpg"],
+      ["caption", "f_caption", "text", ""],
     ],
     audio: [
-      ["to", "Recipient (number or group ID)", "text", "5491111111111"],
-      ["url", "Audio URL", "text", "https://example.com/clip.mp3"],
-      ["ptt", "Send as voice note (true/false)", "text", "true"],
+      ["to", "f_to", "text", "5491111111111"],
+      ["url", "f_audio_url", "text", "https://example.com/clip.mp3"],
+      ["ptt", "f_ptt", "text", "true"],
     ],
     location: [
-      ["to", "Recipient (number or group ID)", "text", "5491111111111"],
-      ["lat", "Latitude", "text", "-34.6037"],
-      ["lng", "Longitude", "text", "-58.3816"],
+      ["to", "f_to", "text", "5491111111111"],
+      ["lat", "f_lat", "text", "-34.6037"],
+      ["lng", "f_lng", "text", "-58.3816"],
     ],
     presence: [
-      ["to", "Recipient (optional)", "text", "5491111111111"],
-      [
-        "type",
-        "available | unavailable | composing | recording | paused",
-        "text",
-        "composing",
-      ],
-      ["infinity", "Keep sending it (true/false)", "text", "false"],
+      ["to", "f_to_opt", "text", "5491111111111"],
+      ["type", "f_type", "text", "composing"],
+      ["infinity", "f_infinity", "text", "false"],
     ],
-    status: [["status", "New profile status", "text", "Available"]],
+    status: [["status", "f_status", "text", "Available"]],
     "listen-message": [],
     "listen-ack": [],
     "listen-presence": [],
@@ -1685,7 +2376,7 @@
       .map(
         ([key, label, type, placeholder]) => `
         <div class="field">
-          <label for="f-${key}">${esc(label)}</label>
+          <label for="f-${key}">${esc(t(label))}</label>
           <input id="f-${key}" data-key="${key}" type="${type}" placeholder="${esc(placeholder)}">
         </div>`,
       )
@@ -1845,7 +2536,7 @@
   const block = (title, hint, text) => `
       <div class="out-head">
         <span class="section-label">${title}</span>
-        <button class="tiny" data-act="copy-text">Copy</button>
+        <button class="tiny" data-act="copy-text">${t("copy")}</button>
       </div>
       ${hint ? `<p class="msg" style="margin-top:0">${hint}</p>` : ""}
       <pre>${esc(text)}</pre>`;
@@ -1890,19 +2581,11 @@
     ];
 
     document.getElementById("b-output").innerHTML =
+      block("Home Assistant", t("o_ha_event"), toYaml(automation)) +
+      block(t("o_nr_manual"), t("o_nr_manual_event"), `Event type:  ${event}`) +
       block(
-        "Home Assistant",
-        "An automation triggered by the event. The payload is in <code>trigger.event.data</code>.",
-        toYaml(automation),
-      ) +
-      block(
-        "Node-RED — fill in by hand",
-        "On an <code>events: all</code> node. The event data arrives in <code>msg.payload</code>.",
-        `Event type:  ${event}`,
-      ) +
-      block(
-        "Node-RED — import",
-        "Copy, then press <code>Ctrl+I</code> in Node-RED and paste to import the node.",
+        t("o_nr_import"),
+        t("o_nr_import_event"),
         JSON.stringify(flow, null, 2),
       );
   }
@@ -1958,26 +2641,18 @@
     ].join("\n");
 
     document.getElementById("b-output").innerHTML =
+      block("Home Assistant", t("o_ha_hint"), toYaml(call)) +
       block(
-        "Home Assistant",
-        "Paste into an automation or script in YAML mode.",
-        toYaml(call),
-      ) +
-      block(
-        "Node-RED — fill in by hand",
-        "On a <code>call service</code> node: set the action, then paste the data into the <code>Data</code> field.",
+        t("o_nr_manual"),
+        t("o_nr_manual_hint"),
         `Action: ${call.action}\n\nData:\n${JSON.stringify(call.data, null, 2)}`,
       ) +
       block(
-        "Node-RED — import",
-        "Or copy this, press <code>Ctrl+I</code> in Node-RED and paste to import the node already configured. Open it once to pick your Home Assistant server.",
+        t("o_nr_import"),
+        t("o_nr_import_hint"),
         JSON.stringify(nodered, null, 2),
       ) +
-      block(
-        "curl",
-        "Only needed to call the add-on directly, from outside Home Assistant.",
-        curl,
-      );
+      block("curl", t("o_curl_hint"), curl);
   }
 
   document
@@ -2065,7 +2740,7 @@
    * navigator.clipboard only exists in secure contexts, and ingress is served
    * over plain HTTP, so fall back to a hidden textarea plus execCommand.
    */
-  async function copy(btn, text, restore = "Copy") {
+  async function copy(btn, text, restore = t("copy")) {
     const original = btn.textContent;
     let ok = false;
 
@@ -2165,9 +2840,102 @@
     .getElementById("messages-refresh")
     .addEventListener("click", () => refreshMessages({ force: true }));
 
+  /* --------------------------------------------------------------- send */
+
+  /**
+   * The recipient box suggests whatever has already been synced: allowed
+   * senders first, since those are the ones with names, then the groups and
+   * contacts loaded in the Chats tab.
+   */
+  function fillSendSuggestions() {
+    const list = document.getElementById("send-suggestions");
+    if (!list) return;
+
+    const seen = new Map();
+    for (const item of allowDetails) {
+      if (item.id) seen.set(item.id, item.name || item.id);
+    }
+    for (const chats of Object.values(state.chats)) {
+      for (const item of [...(chats.groups || []), ...(chats.contacts || [])]) {
+        if (!seen.has(item.id)) seen.set(item.id, item.name || item.id);
+      }
+    }
+
+    list.innerHTML = [...seen]
+      .map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`)
+      .join("");
+  }
+
+  function sendClientId() {
+    return (
+      document.getElementById("send-client").value ||
+      state.clients[0]?.clientId ||
+      "default"
+    );
+  }
+
+  function sendStatus(text, isError = false) {
+    const box = document.getElementById("send-msg");
+    box.textContent = text;
+    box.className = isError ? "msg err" : "msg";
+  }
+
+  document.getElementById("send-go").addEventListener("click", async (e) => {
+    const to = document.getElementById("send-to").value.trim();
+    const text = document.getElementById("send-text").value;
+    if (!to || !text.trim()) return sendStatus(t("send_missing"), true);
+
+    e.target.disabled = true;
+    sendStatus(t("send_sending"));
+    try {
+      const res = await post(`/clients/${sendClientId()}/messages`, {
+        to,
+        body: { text },
+      });
+      sendStatus(`${t("send_ok")} ${res.messageId || ""}`.trim());
+      document.getElementById("send-text").value = "";
+      refreshMessages({ force: true });
+    } catch (err) {
+      sendStatus(err.message, true);
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  document.getElementById("send-snapshot").addEventListener("click", () => {
+    const row = document.getElementById("send-camera-row");
+    row.hidden = !row.hidden;
+    if (!row.hidden) document.getElementById("send-entity").focus();
+  });
+
+  document
+    .getElementById("send-camera-go")
+    .addEventListener("click", async (e) => {
+      const to = document.getElementById("send-to").value.trim();
+      const entityId = document.getElementById("send-entity").value.trim();
+      if (!to || !entityId) return sendStatus(t("send_missing"), true);
+
+      e.target.disabled = true;
+      sendStatus(t("send_capturing"));
+      try {
+        const res = await post(`/clients/${sendClientId()}/media`, {
+          to,
+          entityId,
+          caption: document.getElementById("send-text").value || undefined,
+        });
+        sendStatus(`${t("send_ok")} ${res.messageId || ""}`.trim());
+        refreshMessages({ force: true });
+      } catch (err) {
+        sendStatus(err.message, true);
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+
   /* ---------------------------------------------------------- allowlist */
 
   let allowEntries = [];
+  let allowDetails = [];
 
   function renderAllowlist() {
     const list = document.getElementById("allow-list");
@@ -2178,15 +2946,25 @@
       : t("allow_empty");
     stateLine.className = allowEntries.length ? "msg" : "msg err";
 
+    // The name, when WhatsApp has synced one: a bare LID tells nobody who this is.
+    const names = new Map(allowDetails.map((d) => [d.id, d.name]));
+
     list.innerHTML = allowEntries.length
       ? allowEntries
-          .map(
-            (jid) => `
+          .map((jid) => {
+            const name = names.get(jid);
+            return `
       <div class="chat">
-        <div class="chat-main"><div class="jid">${esc(jid)}</div></div>
+        <div class="avatar" style="background: var(--clay)">${esc(
+          (name || jid).slice(0, 2).toUpperCase(),
+        )}</div>
+        <div class="chat-main">
+          ${name ? `<div class="chat-name">${esc(name)}</div>` : ""}
+          <div class="jid">${esc(jid)}</div>
+        </div>
         <button class="tiny" data-act="allow-remove" data-jid="${esc(jid)}">${t("remove")}</button>
-      </div>`,
-          )
+      </div>`;
+          })
           .join("")
       : "";
   }
@@ -2236,8 +3014,10 @@
       body: JSON.stringify({ entries }),
     });
     allowEntries = res.entries;
+    allowDetails = res.details || [];
     renderAllowlist();
     refreshRecent();
+    fillSendSuggestions();
   }
 
   document.getElementById("allow-add").addEventListener("click", async (e) => {
@@ -2285,7 +3065,9 @@
 
         let control;
         if (type === "boolean") {
-          control = `<input type="checkbox" data-setting="${key}" ${value ? "checked" : ""}>`;
+          control = `<label class="toggle"><input type="checkbox" data-setting="${key}" ${
+            value ? "checked" : ""
+          }><span></span></label>`;
         } else if (type === "number") {
           control = `<input type="number" data-setting="${key}" value="${value}" min="${a}" max="${b}">`;
         } else {
@@ -2297,12 +3079,12 @@
         }
 
         return `
-      <div class="row" style="align-items: flex-start">
+      <div class="setting">
         <div class="field">
           <label>${t("set_" + key)}${note}</label>
           <p class="msg" style="margin: 0">${t("set_" + key + "_hint")}</p>
         </div>
-        <div style="flex: 0 0 auto; padding-top: 4px">${control}</div>
+        <div class="control">${control}</div>
       </div>`;
       },
     ).join("");
@@ -2384,6 +3166,7 @@
     for (const sel of [
       document.getElementById("chat-client"),
       document.getElementById("b-client"),
+      document.getElementById("send-client"),
     ]) {
       const current = sel.value;
       sel.innerHTML = ids.map((id) => `<option>${esc(id)}</option>`).join("");
@@ -2427,8 +3210,10 @@
   api("/allowlist")
     .then((res) => {
       allowEntries = res.entries;
+      allowDetails = res.details || [];
       renderAllowlist();
       refreshRecent();
+      fillSendSuggestions();
     })
     .catch(() => {
       /* shown as empty until it loads */
