@@ -9,7 +9,7 @@ const html = fs.readFileSync(
 );
 
 /** Boots the panel in jsdom with the network stubbed out. */
-const boot = async (language = "en") => {
+const boot = async (language = "en", routes = null) => {
   const dom = new JSDOM(html, {
     runScripts: "dangerously",
     url: "http://localhost/",
@@ -25,8 +25,16 @@ const boot = async (language = "en") => {
         unobserve() {}
         disconnect() {}
       };
-      // The panel polls on load; keep it offline and deterministic.
-      win.fetch = () => Promise.reject(new Error("offline"));
+      // The panel polls on load; keep it offline and deterministic, except
+      // for the routes a test asks to answer.
+      win.fetch = (url) => {
+        const hit =
+          routes &&
+          Object.entries(routes).find(([path]) => String(url).includes(path));
+        return hit
+          ? Promise.resolve({ ok: true, json: async () => hit[1] })
+          : Promise.reject(new Error("offline"));
+      };
       win.document.execCommand = vi.fn(() => true);
     },
   });
@@ -110,10 +118,10 @@ describe("panel: snippet builder", () => {
 
     expect(tabs).toEqual([
       "status",
+      "send",
       "chats",
       "messages",
       "builder",
-      "incoming",
       "settings",
       "help",
     ]);
@@ -143,32 +151,74 @@ describe("panel: snippet builder", () => {
   });
 });
 
+/** A tab is an icon plus a labelled span; the label is what the user reads. */
+const tabLabels = (window) =>
+  [...window.document.querySelectorAll("nav button span")].map(
+    (s) => s.textContent,
+  );
+
+describe("panel: enviar", () => {
+  it("ofrece destinatario, mensaje y envío de una cámara", async () => {
+    const window = await boot();
+    const panel = window.document.querySelector('[data-panel="send"]');
+
+    expect(panel).not.toBeNull();
+    for (const id of ["send-client", "send-to", "send-text", "send-go"]) {
+      expect(panel.querySelector("#" + id)).not.toBeNull();
+    }
+    // The camera fields stay out of the way until asked for.
+    expect(window.document.getElementById("send-camera-row").hidden).toBe(true);
+    window.document.getElementById("send-snapshot").click();
+    expect(window.document.getElementById("send-camera-row").hidden).toBe(
+      false,
+    );
+  });
+});
+
+describe("panel: ajustes", () => {
+  it("traduce cada ajuste en vez de mostrar su clave", async () => {
+    const window = await boot("es", {
+      "/settings": {
+        settings: {
+          markRead: false,
+          groupsRequireMention: true,
+          typingIndicator: true,
+          typingMaxSeconds: 3,
+          markOnline: false,
+          refreshHours: 0,
+          logLevel: "info",
+        },
+        restartRequired: ["markOnline"],
+      },
+    });
+    window.document.querySelector('nav button[data-tab="settings"]').click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    const labels = [
+      ...window.document.querySelectorAll("#settings-form label"),
+    ].map((l) => l.textContent.trim());
+
+    expect(labels).toContain("Marcar como leídos los mensajes entrantes");
+    expect(labels.some((l) => l.startsWith("set_"))).toBe(false);
+  });
+});
+
 describe("panel: idiomas", () => {
   it("traduce la interfaz al idioma del navegador", async () => {
     const window = await boot("es");
-    const tabs = [...window.document.querySelectorAll("nav button")].map(
-      (b) => b.textContent,
-    );
+    const tabs = tabLabels(window);
 
     expect(tabs).toContain("Ajustes");
-    expect(tabs).toContain("Entrantes");
+    expect(tabs).toContain("Enviar");
   });
 
   it("acepta una variante regional y cae al idioma base", async () => {
     const window = await boot("de-AT");
-    const tabs = [...window.document.querySelectorAll("nav button")].map(
-      (b) => b.textContent,
-    );
-
-    expect(tabs).toContain("Einstellungen");
+    expect(tabLabels(window)).toContain("Einstellungen");
   });
 
   it("vuelve al inglés con un idioma que no soportamos", async () => {
     const window = await boot("ja");
-    const tabs = [...window.document.querySelectorAll("nav button")].map(
-      (b) => b.textContent,
-    );
-
-    expect(tabs).toContain("Settings");
+    expect(tabLabels(window)).toContain("Settings");
   });
 });
