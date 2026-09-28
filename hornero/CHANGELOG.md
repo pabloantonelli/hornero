@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.3
 
 ### ✨ Added
 
@@ -29,7 +29,7 @@
 
 - **The actions carried no documentation outside Home Assistant's own UI.** In
   Node-RED every action read "No description provided by home assistant", with
-  an empty Desc column and only three fields offered by *Load example data*.
+  an empty Desc column and only three fields offered by _Load example data_.
   Names and descriptions lived in `translations/`, which only the Home
   Assistant frontend reads; the REST API that Node-RED queries serves
   `services.yaml`. That file now carries a name, a description and an example

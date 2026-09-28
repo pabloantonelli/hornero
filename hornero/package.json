@@ -1,6 +1,6 @@
 {
   "name": "hornero",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Home Assistant add-on to send and receive WhatsApp messages, powered by Baileys",
   "type": "module",
   "main": "src/server.js",
