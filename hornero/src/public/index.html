@@ -4,7 +4,7 @@
 <title>Hornero</title>
 <link
   rel="icon"
-  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%2315A06B'/%3E%3Cpath d='M56 420 a164 186 0 0 1 328 0 Z' fill='%23D4885F'/%3E%3Cpath d='M170 420 v-84 a50 50 0 0 1 100 0 v84 Z' fill='%234A2412'/%3E%3Cg stroke='%23F2FFF8' stroke-width='34' stroke-linecap='round' stroke-linejoin='round' fill='none'%3E%3Cpath d='M276 144 L302 172 L360 100'/%3E%3C/g%3E%3C/svg%3E"
+  href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%2265%2075%20400%20400%22%3E%3Cdefs%3E%20%3ClinearGradient%20id=%22c%22%20x1=%220%25%22%20y1=%220%25%22%20x2=%220%25%22%20y2=%22100%25%22%3E%20%3Cstop%20offset=%220%25%22%20stop-color=%22#EEB49E%22/%3E%20%3Cstop%20offset=%22100%25%22%20stop-color=%22#CF785A%22/%3E%20%3C/linearGradient%3E%20%3C/defs%3E%20%3Crect%20width=%22512%22%20height=%22512%22%20rx=%22128%22%20fill=%22#FFFFFF%22%20stroke=%22#E2E8F0%22%20stroke-width=%224%22/%3E%20%3Cg%20transform=%22translate(60,%2036)%22%3E%20%3Cpath%20d=%22M%2025%20415%20C%20130%20410,%20265%20410,%20370%20415%22%20stroke=%22#CBD5E1%22%20stroke-width=%2216%22%20stroke-linecap=%22round%22/%3E%20%3Cg%20transform=%22translate(30,%20200)%22%3E%20%3Cpath%20d=%22M%2020%20215%20C%205%20110,%2080%2030,%20175%2030%20C%20270%2030,%20310%20110,%20305%20215%20Z%22%20fill=%22url(#c)%22/%3E%20%3Cpath%20d=%22M%2010%20215%20L%20315%20215%22%20stroke=%22#B4593C%22%20stroke-width=%2212%22%20stroke-linecap=%22round%22/%3E%20%3Cpath%20d=%22M%2050%20120%20C%20110%2095,%20200%2095,%20260%20130%22%20fill=%22none%22%20stroke=%22#D96E4C%22%20stroke-width=%225%22%20opacity=%220.35%22%20stroke-linecap=%22round%22/%3E%20%3Cpath%20d=%22M%2060%20215%20V%20145%20C%2060%20100,%20130%20100,%20130%20145%20V%20215%20Z%22%20fill=%22#3D1D13%22/%3E%20%3Cpath%20d=%22M%20130%20145%20C%20130%20120,%20115%20110,%20100%20110%22%20fill=%22none%22%20stroke=%22#EEB49E%22%20stroke-width=%228%22%20stroke-linecap=%22round%22/%3E%20%3C/g%3E%20%3Cg%20transform=%22translate(110,%2010)%22%3E%20%3Cpath%20d=%22M%2090%20205%20L%2082%20230%20M%20120%20205%20L%20128%20230%22%20stroke=%22#475569%22%20stroke-width=%229%22%20stroke-linecap=%22round%22/%3E%20%3Cpath%20d=%22M%2020%20165%20L%20-35%20140%20L%205%20190%20Z%22%20fill=%22#B45334%22/%3E%20%3Cellipse%20cx=%2288%22%20cy=%22150%22%20rx=%2276%22%20ry=%2264%22%20fill=%22#C86747%22/%3E%20%3Cpath%20d=%22M%20118%20100%20C%20162%20130,%20168%20185,%20132%20210%20C%20102%20215,%2082%20200,%2082%20200%20C%20122%20180,%20132%20135,%20118%20100%20Z%22%20fill=%22#FFF1E6%22/%3E%20%3Cellipse%20cx=%2252%22%20cy=%22150%22%20rx=%2242%22%20ry=%2228%22%20transform=%22rotate(-15%2052%20150)%22%20fill=%22#A84C2F%22/%3E%20%3Ccircle%20cx=%22132%22%20cy=%2290%22%20r=%2244%22%20fill=%22#CF7050%22/%3E%20%3Cpath%20d=%22M%20122%2068%20C%20136%2066,%20158%2071,%20166%2080%22%20stroke=%22#FFF1E6%22%20stroke-width=%226%22%20stroke-linecap=%22round%22%20fill=%22none%22/%3E%20%3Ccircle%20cx=%22144%22%20cy=%2284%22%20r=%229.5%22%20fill=%22#0F172A%22/%3E%20%3Ccircle%20cx=%22147%22%20cy=%2281%22%20r=%223.5%22%20fill=%22#FFFFFF%22/%3E%20%3Cpath%20d=%22M%20170%2084%20L%20228%2092%20L%20170%20102%20Z%22%20fill=%22#475569%22/%3E%20%3C/g%3E%20%3C/g%3E%3C/svg%3E"
 />
 <style>
   :root {
@@ -66,9 +66,11 @@
     margin-bottom: 16px;
   }
   header .mark {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 11px;
+    border: 1px solid var(--border);
+    background: #fff;
     flex: 0 0 auto;
   }
   header .titles {
@@ -406,8 +408,8 @@
       font-size: 1.15rem;
     }
     header .mark {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
     }
     /* The state pill drops under the title instead of squeezing it. */
     header {
@@ -572,18 +574,93 @@
 
 <div class="wrap">
   <header>
-    <svg class="mark" viewBox="0 0 512 512" aria-hidden="true">
-      <rect width="512" height="512" rx="112" fill="#12a06b" />
-      <path d="M56 420 a164 186 0 0 1 328 0 Z" fill="#d4885f" />
-      <path d="M170 420 v-84 a50 50 0 0 1 100 0 v84 Z" fill="#4a2412" />
-      <path
-        d="M276 150 L302 178 L360 106"
-        stroke="#f2fff8"
-        stroke-width="34"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        fill="none"
+    <svg class="mark" viewBox="65 75 400 400" aria-hidden="true">
+      <defs>
+        <linearGradient id="clay" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#EEB49E" />
+          <stop offset="100%" stop-color="#CF785A" />
+        </linearGradient>
+      </defs>
+      <rect
+        width="512"
+        height="512"
+        rx="128"
+        fill="#FFFFFF"
+        stroke="#E2E8F0"
+        stroke-width="4"
       />
+      <g transform="translate(60, 36)">
+        <path
+          d="M 25 415 C 130 410, 265 410, 370 415"
+          stroke="#CBD5E1"
+          stroke-width="16"
+          stroke-linecap="round"
+        />
+        <g transform="translate(30, 200)">
+          <path
+            d="M 20 215 C 5 110, 80 30, 175 30 C 270 30, 310 110, 305 215 Z"
+            fill="url(#clay)"
+          />
+          <path
+            d="M 10 215 L 315 215"
+            stroke="#B4593C"
+            stroke-width="12"
+            stroke-linecap="round"
+          />
+          <path
+            d="M 50 120 C 110 95, 200 95, 260 130"
+            fill="none"
+            stroke="#D96E4C"
+            stroke-width="5"
+            opacity="0.35"
+            stroke-linecap="round"
+          />
+          <path
+            d="M 60 215 V 145 C 60 100, 130 100, 130 145 V 215 Z"
+            fill="#3D1D13"
+          />
+          <path
+            d="M 130 145 C 130 120, 115 110, 100 110"
+            fill="none"
+            stroke="#EEB49E"
+            stroke-width="8"
+            stroke-linecap="round"
+          />
+        </g>
+        <g transform="translate(110, 10)">
+          <path
+            d="M 90 205 L 82 230 M 120 205 L 128 230"
+            stroke="#475569"
+            stroke-width="9"
+            stroke-linecap="round"
+          />
+          <path d="M 20 165 L -35 140 L 5 190 Z" fill="#B45334" />
+          <ellipse cx="88" cy="150" rx="76" ry="64" fill="#C86747" />
+          <path
+            d="M 118 100 C 162 130, 168 185, 132 210 C 102 215, 82 200, 82 200 C 122 180, 132 135, 118 100 Z"
+            fill="#FFF1E6"
+          />
+          <ellipse
+            cx="52"
+            cy="150"
+            rx="42"
+            ry="28"
+            transform="rotate(-15 52 150)"
+            fill="#A84C2F"
+          />
+          <circle cx="132" cy="90" r="44" fill="#CF7050" />
+          <path
+            d="M 122 68 C 136 66, 158 71, 166 80"
+            stroke="#FFF1E6"
+            stroke-width="6"
+            stroke-linecap="round"
+            fill="none"
+          />
+          <circle cx="144" cy="84" r="9.5" fill="#0F172A" />
+          <circle cx="147" cy="81" r="3.5" fill="#FFFFFF" />
+          <path d="M 170 84 L 228 92 L 170 102 Z" fill="#475569" />
+        </g>
+      </g>
     </svg>
     <div class="titles">
       <h1>Hornero</h1>

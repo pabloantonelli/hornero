@@ -1,43 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="wa" x1="0" y1="0" x2="0.35" y2="1">
-      <stop offset="0%" stop-color="#2BDE73"/>
-      <stop offset="100%" stop-color="#0A6E58"/>
+    <linearGradient id="clay" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EEB49E"/>
+      <stop offset="100%" stop-color="#CF785A"/>
     </linearGradient>
-    <linearGradient id="clay" x1="0.2" y1="0" x2="0.8" y2="1">
-      <stop offset="0%" stop-color="#E5B08C"/>
-      <stop offset="100%" stop-color="#AE5533"/>
-    </linearGradient>
-    <mask id="door">
-      <rect width="512" height="512" fill="#fff"/>
-      <path d="M170 420 v-84 a50 50 0 0 1 100 0 v84 Z" fill="#000"/>
-    </mask>
   </defs>
 
-  <rect width="512" height="512" rx="112" fill="url(#wa)"/>
+  <!-- Squircle contenedor blanco limpio -->
+  <rect width="512" height="512" rx="128" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="4"/>
 
-  <g transform="translate(276 96)" stroke="#F2FFF8" stroke-width="20"
-     stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M0 48 L26 76 L84 4"/>
-    <path d="M88 48 L114 76 L172 4"/>
-  </g>
+  <g transform="translate(60, 36)">
+    <!-- Base / Rama de apoyo -->
+    <path d="M 25 415 C 130 410, 265 410, 370 415" stroke="#CBD5E1" stroke-width="16" stroke-linecap="round"/>
 
-  <g mask="url(#door)">
-    <path d="M56 420 a164 186 0 0 1 328 0 Z" fill="url(#clay)"/>
-    <path d="M96 420 a124 141 0 0 1 248 0" fill="none" stroke="#8E4227" stroke-width="9" opacity="0.26" stroke-linecap="round"/>
-    <path d="M138 420 a82 93 0 0 1 164 0" fill="none" stroke="#8E4227" stroke-width="8" opacity="0.2" stroke-linecap="round"/>
-  </g>
-  <path d="M170 420 v-84 a50 50 0 0 1 100 0 v84 Z" fill="#4A2412"/>
-  <rect x="40" y="412" width="360" height="22" rx="11" fill="#8E4227"/>
+    <!-- Casita de barro (nido tradicional con domo y entrada curva) -->
+    <g transform="translate(30, 200)">
+      <path d="M 20 215 C 5 110, 80 30, 175 30 C 270 30, 310 110, 305 215 Z" fill="url(#clay)"/>
+      <path d="M 10 215 L 315 215" stroke="#B4593C" stroke-width="12" stroke-linecap="round"/>
+      <path d="M 50 120 C 110 95, 200 95, 260 130" fill="none" stroke="#D96E4C" stroke-width="5" opacity="0.35" stroke-linecap="round"/>
+      <!-- Entrada del nido -->
+      <path d="M 60 215 V 145 C 60 100, 130 100, 130 145 V 215 Z" fill="#3D1D13"/>
+      <path d="M 130 145 C 130 120, 115 110, 100 110" fill="none" stroke="#EEB49E" stroke-width="8" stroke-linecap="round"/>
+    </g>
 
-  <g transform="translate(340 276)">
-    <path d="M24 6 L92 -22 L98 -2 L86 6 L96 22 L30 32 Z" fill="#A34A26"/>
-    <ellipse cx="0" cy="0" rx="48" ry="40" transform="rotate(-12)" fill="#C86238"/>
-    <path d="M-20 -16 a46 32 0 0 1 50 22 a42 28 0 0 1 -46 -6 Z" fill="#A34A26" opacity="0.45"/>
-    <circle cx="-40" cy="-31" r="28" fill="#D06B3E"/>
-    <path d="M-17 6 a30 26 0 0 1 -30 22 a26 30 0 0 1 -8 -34 a34 30 0 0 0 38 12 Z" fill="#F4DCC2"/>
-    <circle cx="-50" cy="-37" r="6.5" fill="#33190C"/>
-    <path d="M-64 -27 L-100 -18 L-64 -10 Z" fill="#33190C"/>
-    <path d="M-10 36 v20" stroke="#8E4227" stroke-width="9" stroke-linecap="round"/>
+    <!-- Hornero gordito protagonista -->
+    <g transform="translate(110, 10)">
+      <!-- Patitas -->
+      <path d="M 90 205 L 82 230 M 120 205 L 128 230" stroke="#475569" stroke-width="9" stroke-linecap="round"/>
+      <!-- Cola canela rojiza -->
+      <path d="M 20 165 L -35 140 L 5 190 Z" fill="#B45334"/>
+      <!-- Cuerpo gordito -->
+      <ellipse cx="88" cy="150" rx="76" ry="64" fill="#C86747"/>
+      <!-- Pecho claro crema amplio -->
+      <path d="M 118 100 C 162 130, 168 185, 132 210 C 102 215, 82 200, 82 200 C 122 180, 132 135, 118 100 Z" fill="#FFF1E6"/>
+      <!-- Ala en castaño oscuro -->
+      <ellipse cx="52" cy="150" rx="42" ry="28" transform="rotate(-15 52 150)" fill="#A84C2F"/>
+      <!-- Cabeza redonda simpática -->
+      <circle cx="132" cy="90" r="44" fill="#CF7050"/>
+      <!-- Cejita clara característica -->
+      <path d="M 122 68 C 136 66, 158 71, 166 80" stroke="#FFF1E6" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <!-- Ojito vivaz con brillo -->
+      <circle cx="144" cy="84" r="9.5" fill="#0F172A"/>
+      <circle cx="147" cy="81" r="3.5" fill="#FFFFFF"/>
+      <!-- Pico fino de hornero -->
+      <path d="M 170 84 L 228 92 L 170 102 Z" fill="#475569"/>
+    </g>
   </g>
 </svg>

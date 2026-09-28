@@ -11,9 +11,10 @@
 
 ### 💅 Changed
 
-- **A new mark.** The icon now carries the bird as well as its nest, on
-  WhatsApp's own green, with the double tick that says what the add-on is for.
-  The old one read as a plain brown dome at small sizes.
+- **A new mark**: the ovenbird itself, perched on its mud nest. The old icon
+  was a plain brown dome that read as anything at small sizes. The panel takes
+  its header mark and favicon from the same drawing, cropped in so it stays
+  legible at 40px.
 - **The panel works on a phone.** Tabs scroll sideways instead of wrapping into
   an unreadable block, every field takes the full width, the definition lists
   stop forcing two columns onto a 360px screen, and the code blocks shrink.
