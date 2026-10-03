@@ -39,6 +39,14 @@ export const addressesMe = (msg, ownJids = []) => {
   const mine = new Set(ownJids.filter(Boolean).map(bare));
   if (mine.size === 0) return false;
 
+  // Fallback: a typed "@<number>" in the text, for when WhatsApp sends the
+  // mention without (or with an unmatched) mentionedJid.
+  const text = JSON.stringify(msg?.message ?? {});
+  for (const jid of mine) {
+    const user = jid.split("@")[0];
+    if (user && text.includes(`@${user}`)) return true;
+  }
+
   return contextInfos(msg?.message).some((ctx) => {
     if ((ctx.mentionedJid ?? []).some((jid) => mine.has(bare(jid))))
       return true;

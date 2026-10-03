@@ -99,6 +99,7 @@ export class BaileysClient extends EventEmitter2 {
   #refreshInterval;
   #presenceInterval;
   #saveCreds;
+  #creds;
   #version;
   #queue = new PQueue({ concurrency: 1 });
   #existsCache = new Map();
@@ -159,7 +160,8 @@ export class BaileysClient extends EventEmitter2 {
    */
   get ownJids() {
     const user = this.#conn?.user;
-    return [user?.id, user?.lid].filter(Boolean);
+    const me = this.#creds?.me;
+    return [...new Set([user?.id, user?.lid, me?.id, me?.lid].filter(Boolean))];
   }
 
   /** Opens the socket. Must be awaited by the caller so failures surface. */
@@ -195,6 +197,7 @@ export class BaileysClient extends EventEmitter2 {
     const version = await this.#resolveVersion();
     const { state, saveCreds } = await useMultiFileAuthState(this.#path);
     this.#saveCreds = saveCreds;
+    this.#creds = state.creds;
 
     this.#conn = makeWASocket({
       version,
