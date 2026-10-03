@@ -80,7 +80,9 @@ const main = async () => {
             client: key,
             from: msg?.key?.remoteJid,
             ownJids: client.ownJids,
-            mentioned: JSON.stringify(msg?.message).match(/"mentionedJid":\[[^\]]*\]/g),
+            mentioned: JSON.stringify(msg?.message).match(
+              /"mentionedJid":\[[^\]]*\]/g,
+            ),
           },
           "group message ignored: it does not mention or quote Hornero",
         );
