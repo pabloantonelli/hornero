@@ -78,7 +78,11 @@ describe("isAllowed", () => {
       ),
     ).toBe(true);
     expect(
-      isAllowed(msg("120363000@g.us", "5499999999999@s.whatsapp.net"), list, modes),
+      isAllowed(
+        msg("120363000@g.us", "5499999999999@s.whatsapp.net"),
+        list,
+        modes,
+      ),
     ).toBe(false);
   });
 

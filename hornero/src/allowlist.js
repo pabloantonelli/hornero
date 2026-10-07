@@ -51,7 +51,9 @@ export const isGroupJid = (jid) => String(jid ?? "").endsWith("@g.us");
 export const bareJid = (jid) => String(jid ?? "").replace(/:\d+(?=@)/, "");
 
 const listed = (allowlist, jids) =>
-  jids.some((jid) => jid && (allowlist.has(jid) || allowlist.has(bareJid(jid))));
+  jids.some(
+    (jid) => jid && (allowlist.has(jid) || allowlist.has(bareJid(jid))),
+  );
 
 /**
  * A person on the list is accepted in a direct chat. A group must be on the

@@ -244,9 +244,7 @@ export const createApiRouter = (
     entries.map((id) => ({
       id,
       name: describeEntry(id),
-      ...(isGroupJid(id)
-        ? { mode: groupModes[id] ?? DEFAULT_GROUP_MODE }
-        : {}),
+      ...(isGroupJid(id) ? { mode: groupModes[id] ?? DEFAULT_GROUP_MODE } : {}),
     }));
 
   const allowlistBody = () => {

@@ -18,7 +18,8 @@ const bare = (jid) => String(jid ?? "").replace(/:\d+(?=@)/, "");
 const walk = (message, visit, depth = 0) => {
   if (!message || typeof message !== "object" || depth > 4) return;
   for (const [key, value] of Object.entries(message)) {
-    if (key === "quotedMessage" || !value || typeof value !== "object") continue;
+    if (key === "quotedMessage" || !value || typeof value !== "object")
+      continue;
     if (key === "contextInfo") visit.context(value);
     walk(value, visit, depth + 1);
   }
@@ -35,7 +36,10 @@ const walk = (message, visit, depth = 0) => {
 const partsOf = (message) => {
   const contexts = [];
   const texts = [];
-  walk(message, { context: (c) => contexts.push(c), text: (t) => texts.push(t) });
+  walk(message, {
+    context: (c) => contexts.push(c),
+    text: (t) => texts.push(t),
+  });
   return { contexts, texts };
 };
 
