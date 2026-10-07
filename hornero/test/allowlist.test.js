@@ -59,13 +59,49 @@ describe("isAllowed", () => {
     ).toBe(true);
   });
 
-  it("permite listar a una persona dentro de un grupo no listado", () => {
+  it("una persona listada no abre un grupo que no está en la lista", () => {
     const list = buildAllowlist(["5491111111111"]);
     expect(
       isAllowed(msg("120363999@g.us", "5491111111111@s.whatsapp.net"), list),
+    ).toBe(false);
+  });
+
+  it("en modo members, solo pasan los autores habilitados", () => {
+    const list = buildAllowlist(["120363000@g.us", "5491111111111"]);
+    const modes = { "120363000@g.us": "members" };
+
+    expect(
+      isAllowed(
+        msg("120363000@g.us", "5491111111111:3@s.whatsapp.net"),
+        list,
+        modes,
+      ),
     ).toBe(true);
     expect(
-      isAllowed(msg("120363999@g.us", "5490000000000@s.whatsapp.net"), list),
+      isAllowed(msg("120363000@g.us", "5499999999999@s.whatsapp.net"), list, modes),
+    ).toBe(false);
+  });
+
+  it("en modo members, reconoce al autor por su LID", () => {
+    const list = buildAllowlist(["120363000@g.us", "5491111111111"]);
+    const incoming = {
+      key: {
+        remoteJid: "120363000@g.us",
+        participant: "173478124720340@lid",
+        participantAlt: "5491111111111@s.whatsapp.net",
+      },
+    };
+    expect(isAllowed(incoming, list, { "120363000@g.us": "members" })).toBe(
+      true,
+    );
+  });
+
+  it("en modo members sin nadie habilitado, no pasa nada", () => {
+    const list = buildAllowlist(["120363000@g.us"]);
+    expect(
+      isAllowed(msg("120363000@g.us", "5499999999999@s.whatsapp.net"), list, {
+        "120363000@g.us": "members",
+      }),
     ).toBe(false);
   });
 });
@@ -92,6 +128,42 @@ describe("AllowlistStore", () => {
     await second.load(["ignorado-porque-ya-hay-archivo"]);
 
     expect(second.entries).toEqual(["120363000@g.us"]);
+  });
+
+  it("un archivo sin groupModes deja los grupos en modo all", async () => {
+    const dir = tmp();
+    fs.writeFileSync(
+      path.join(dir, "allowlist.json"),
+      JSON.stringify({ entries: ["120363000@g.us"] }),
+    );
+    const store = new AllowlistStore({ dataDir: dir });
+    await store.load([]);
+
+    expect(store.groupModes).toEqual({});
+    expect(
+      store.allows(msg("120363000@g.us", "5499999999999@s.whatsapp.net")),
+    ).toBe(true);
+  });
+
+  it("guarda los modos y descarta los de grupos quitados o inválidos", async () => {
+    const dir = tmp();
+    const store = new AllowlistStore({ dataDir: dir });
+    await store.load([]);
+    await store.replace(["120363000@g.us", "120363111@g.us"], {
+      "120363000@g.us": "members",
+      "120363111@g.us": "cualquiera",
+      "120363999@g.us": "members",
+    });
+    expect(store.groupModes).toEqual({ "120363000@g.us": "members" });
+
+    // Sin modos explícitos, se conservan los actuales.
+    await store.replace(["120363000@g.us", "5491111111111"]);
+    const reread = new AllowlistStore({ dataDir: dir });
+    await reread.load([]);
+    expect(reread.groupModes).toEqual({ "120363000@g.us": "members" });
+
+    await store.replace(["5491111111111"]);
+    expect(store.groupModes).toEqual({});
   });
 
   it("vacía acepta a cualquiera", async () => {
@@ -125,7 +197,10 @@ describe("identificadores LID", () => {
         participantAlt: "5491111111111@s.whatsapp.net",
       },
     };
-    expect(isAllowed(incoming, byPhone)).toBe(true);
+    const list = buildAllowlist(["120363000@g.us", "5491111111111"]);
+    expect(isAllowed(incoming, list, { "120363000@g.us": "members" })).toBe(
+      true,
+    );
   });
 
   it("sigue bloqueando a un desconocido con LID", () => {

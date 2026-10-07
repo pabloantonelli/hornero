@@ -114,7 +114,7 @@ El comportamiento del add-on también está expuesto:
 
 Con el número de Hornero en un grupo, todo lo que se escriba ahí llegaría a
 Home Assistant. Activá `switch.hornero_groups_require_mention` —o el
-interruptor equivalente en la pestaña Entrantes del panel— y un mensaje de
+interruptor equivalente en la pestaña Ajustes del panel— y un mensaje de
 grupo solo pasa cuando menciona a Hornero o responde a un mensaje que Hornero
 envió. Los chats directos nunca se filtran así.
 
@@ -123,7 +123,7 @@ envió. Los chats directos nunca se filtran así.
 Una entidad notify es un único destino —Home Assistant no le da campo de
 destinatario—, así que Hornero crea **una por cada remitente permitido**, con
 el nombre del contacto o del grupo. Aparecen y desaparecen a medida que editás
-la lista de Entrantes, y sirven para cualquier blueprint que espere un
+la lista de permitidos, y sirven para cualquier blueprint que espere un
 notificador.
 
 También hay una entidad `notify.<cliente>` que envía a un destinatario fijo,
@@ -133,17 +133,18 @@ Para un destinatario que varía, o uno que no está en la lista, usá
 
 ## El panel de Hornero
 
-Seis pestañas en la barra lateral:
+Siete pestañas en la barra lateral:
 
 - **Estado** — cada cliente, con vinculación por QR o código de 8 dígitos.
-- **Grupos y contactos** — tus chats con foto y buscador. Copiás el ID de un
-  grupo directo al servicio; el ID de un grupo no se puede deducir de un
-  número, así que esta es la forma de conseguirlo.
+- **Enviar** — mandás un mensaje o una foto de una cámara para probar todo de punta a punta.
+- **Grupos y contactos** — quién puede disparar tus automatizaciones, junto a
+  tus chats con foto y buscador. Copiás el ID de un grupo directo al servicio;
+  el ID de un grupo no se puede deducir de un número, así que esta es la forma
+  de conseguirlo.
 - **Mensajes** — qué se envió y se recibió últimamente, con el estado de
   entrega de cada mensaje saliente.
 - **Generador** — elegís una acción, completás los campos y copiás la llamada
   como YAML de Home Assistant, como nodo importable de Node-RED, o como `curl`.
-- **Entrantes** — quién puede disparar tus automatizaciones.
 - **Ajustes** — comportamiento que podés cambiar sin reiniciar.
 - **Ayuda** — servicios, eventos y reglas de direccionamiento.
 
@@ -151,9 +152,17 @@ Seis pestañas en la barra lateral:
 
 Los mensajes entrantes llegan como eventos `hornero_message`, y las
 automatizaciones actúan sobre ellos. **Mientras no haya remitentes en la lista,
-cualquiera que te escriba puede dispararlas.** Abrí la pestaña **Entrantes** y
-agregá los que aceptás: ahí se listan los remitentes recientes con un botón
-**Permitir**, así nunca tenés que averiguar un identificador a mano.
+cualquiera que te escriba puede dispararlas.** Abrí la pestaña **Grupos y
+contactos** y permití los que aceptás: ahí se listan tus chats y los remitentes
+recientes con un botón **Permitir**, así nunca tenés que averiguar un
+identificador a mano.
+
+- **Una persona permitida** pasa por privado, y en los grupos permitidos
+  configurados como _Solo contactos habilitados_; nunca en un grupo que no esté
+  en la lista.
+- **Un grupo permitido** deja pasar a _todos los miembros_ o _solo a los
+  contactos habilitados_, según elijas para cada grupo. La pestaña muestra qué
+  personas permitidas están en cada grupo.
 
 Eso importa porque WhatsApp identifica cada vez más a la gente con un **LID**
 (`173478124720340@lid`) que no revela su número. Permitir un número cubre

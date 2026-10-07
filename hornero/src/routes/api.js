@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { z } from "zod";
 import { asyncRoute, resolveClient, validate } from "./middleware.js";
 import { RESTART_REQUIRED } from "../settings.js";
+import { DEFAULT_GROUP_MODE, GROUP_MODES, isGroupJid } from "../allowlist.js";
 import {
   captureRecording,
   captureSnapshot,
@@ -82,6 +83,7 @@ const settingsSchema = z
 
 const allowlistSchema = z.object({
   entries: z.array(z.union([z.string(), z.number()])),
+  groupModes: z.record(z.string(), z.enum(GROUP_MODES)).optional(),
 });
 
 const describe = (id, client) => ({
@@ -238,26 +240,41 @@ export const createApiRouter = (
     return recent?.name ?? null;
   };
 
-  const withNames = (entries) =>
-    entries.map((id) => ({ id, name: describeEntry(id) }));
+  const withNames = (entries, groupModes = {}) =>
+    entries.map((id) => ({
+      id,
+      name: describeEntry(id),
+      ...(isGroupJid(id)
+        ? { mode: groupModes[id] ?? DEFAULT_GROUP_MODE }
+        : {}),
+    }));
+
+  const allowlistBody = () => {
+    const entries = allowlist?.entries ?? [];
+    const groupModes = allowlist?.groupModes ?? {};
+    return {
+      entries,
+      // The same list with names, for clients that can show them.
+      details: withNames(entries, groupModes),
+      groupModes,
+      open: allowlist?.open ?? true,
+    };
+  };
 
   /** Which senders may trigger Home Assistant events. Empty allows everyone. */
   router.get("/allowlist", (req, res) => {
-    const entries = allowlist?.entries ?? [];
-    res.json({
-      entries,
-      // The same list with names, for clients that can show them.
-      details: withNames(entries),
-      open: allowlist?.open ?? true,
-    });
+    res.json(allowlistBody());
   });
 
   router.put(
     "/allowlist",
     validate(allowlistSchema),
     asyncRoute(async (req, res) => {
-      const entries = await allowlist.replace(req.validated.entries);
-      res.json({ entries, details: withNames(entries), open: allowlist.open });
+      const { entries, groupModes } = req.validated;
+      await (groupModes
+        ? allowlist.replace(entries, groupModes)
+        : allowlist.replace(entries));
+      res.json(allowlistBody());
     }),
   );
 

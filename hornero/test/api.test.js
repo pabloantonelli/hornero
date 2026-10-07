@@ -335,6 +335,35 @@ describe("allowlist", () => {
     expect(allowlist.replace).toHaveBeenCalledWith(["5492222222222"]);
   });
 
+  it("acepta y devuelve el modo de cada grupo", async () => {
+    allowlist.groupModes = {};
+    allowlist.replace.mockImplementation(async (entries, groupModes) => {
+      allowlist.entries = entries;
+      allowlist.groupModes = groupModes;
+    });
+
+    const res = await auth(request(app).put("/api/v1/allowlist")).send({
+      entries: ["120363000@g.us"],
+      groupModes: { "120363000@g.us": "members" },
+    });
+
+    expect(res.status).toBe(200);
+    expect(allowlist.replace).toHaveBeenCalledWith(["120363000@g.us"], {
+      "120363000@g.us": "members",
+    });
+    expect(res.body.groupModes).toEqual({ "120363000@g.us": "members" });
+    expect(res.body.details[0]).toMatchObject({ mode: "members" });
+  });
+
+  it("rechaza un modo de grupo desconocido", async () => {
+    const res = await auth(request(app).put("/api/v1/allowlist")).send({
+      entries: ["120363000@g.us"],
+      groupModes: { "120363000@g.us": "algunos" },
+    });
+
+    expect(res.status).toBe(400);
+  });
+
   it("rechaza un cuerpo que no sea una lista", async () => {
     const res = await auth(request(app).put("/api/v1/allowlist")).send({
       entries: "5492222222222",

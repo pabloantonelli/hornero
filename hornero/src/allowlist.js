@@ -28,10 +28,10 @@ export const buildAllowlist = (entries) =>
  * Every identifier a message can be matched against.
  *
  * A group message carries the group in `remoteJid` and the author in
- * `participant`, so either may be listed. WhatsApp also addresses people by
- * LID (`…@lid`), which hides the phone number; Baileys puts the other form of
- * the same identity in the `Alt` fields, so both are considered — otherwise an
- * allowlist of phone numbers would never match a LID-addressed sender.
+ * `participant`. WhatsApp also addresses people by LID (`…@lid`), which hides
+ * the phone number; Baileys puts the other form of the same identity in the
+ * `Alt` fields, so both are considered — otherwise an allowlist of phone
+ * numbers would never match a LID-addressed sender.
  */
 export const identifiersOf = (msg) =>
   [
@@ -41,22 +41,52 @@ export const identifiersOf = (msg) =>
     msg?.key?.participantAlt,
   ].filter(Boolean);
 
-export const isAllowed = (msg, allowlist) => {
+/** Who may write in an allowed group: every member, or only allowed people. */
+export const GROUP_MODES = ["all", "members"];
+export const DEFAULT_GROUP_MODE = "all";
+
+export const isGroupJid = (jid) => String(jid ?? "").endsWith("@g.us");
+
+/** Strips the device suffix, so 12:34@s.whatsapp.net matches 12@s.whatsapp.net. */
+export const bareJid = (jid) => String(jid ?? "").replace(/:\d+(?=@)/, "");
+
+const listed = (allowlist, jids) =>
+  jids.some((jid) => jid && (allowlist.has(jid) || allowlist.has(bareJid(jid))));
+
+/**
+ * A person on the list is accepted in a direct chat. A group must be on the
+ * list itself: in `all` mode anyone posting in it is accepted, in `members`
+ * mode only authors who are on the list too. Being on the list does not open
+ * groups that are not — that would let anyone add you to a group and use it.
+ */
+export const isAllowed = (msg, allowlist, groupModes = {}) => {
   if (!allowlist || allowlist.size === 0) return true;
 
-  return identifiersOf(msg).some((jid) => {
-    if (allowlist.has(jid)) return true;
-    // Compare bare ids too, so a device suffix like :12 still matches.
-    const bare = jid.replace(/:\d+(?=@)/, "");
-    return allowlist.has(bare);
-  });
+  const key = msg?.key ?? {};
+  if (!isGroupJid(key.remoteJid)) {
+    return listed(allowlist, [key.remoteJid, key.remoteJidAlt]);
+  }
+
+  if (!allowlist.has(key.remoteJid)) return false;
+  if ((groupModes[key.remoteJid] ?? DEFAULT_GROUP_MODE) === "all") return true;
+  return listed(allowlist, [key.participant, key.participantAlt]);
 };
+
+/** Keeps a valid mode only for groups that are on the list. */
+const cleanModes = (modes, entries) =>
+  Object.fromEntries(
+    Object.entries(modes ?? {}).filter(
+      ([jid, mode]) =>
+        isGroupJid(jid) && entries.has(jid) && GROUP_MODES.includes(mode),
+    ),
+  );
 
 /** Persisted, editable allowlist. */
 export class AllowlistStore {
   #file;
   #entries = [];
   #set = new Set();
+  #groupModes = {};
   #logger;
 
   constructor({ dataDir, logger }) {
@@ -68,7 +98,8 @@ export class AllowlistStore {
   async load(seed) {
     try {
       const raw = await fs.readFile(this.#file, "utf8");
-      this.#apply(JSON.parse(raw).entries ?? []);
+      const saved = JSON.parse(raw);
+      this.#apply(saved.entries ?? [], saved.groupModes);
       return;
     } catch {
       // not saved yet
@@ -78,16 +109,21 @@ export class AllowlistStore {
     if (this.#entries.length) await this.#persist();
   }
 
-  #apply(entries) {
+  #apply(entries, groupModes) {
     this.#set = buildAllowlist(entries);
     this.#entries = [...this.#set];
+    this.#groupModes = cleanModes(groupModes, this.#set);
   }
 
   async #persist() {
     try {
       await fs.writeFile(
         this.#file,
-        JSON.stringify({ entries: this.#entries }, null, 2),
+        JSON.stringify(
+          { entries: this.#entries, groupModes: this.#groupModes },
+          null,
+          2,
+        ),
       );
     } catch (err) {
       this.#logger?.error({ err: err.message }, "could not save the allowlist");
@@ -98,18 +134,24 @@ export class AllowlistStore {
     return [...this.#entries];
   }
 
+  /** Mode per allowed group; a group missing here admits every member. */
+  get groupModes() {
+    return { ...this.#groupModes };
+  }
+
   /** True while empty: an empty allowlist accepts everyone. */
   get open() {
     return this.#set.size === 0;
   }
 
-  async replace(entries) {
-    this.#apply(entries);
+  /** Modes default to the current ones, so a caller may send entries alone. */
+  async replace(entries, groupModes = this.#groupModes) {
+    this.#apply(entries, groupModes);
     await this.#persist();
     return this.entries;
   }
 
   allows(msg) {
-    return isAllowed(msg, this.#set);
+    return isAllowed(msg, this.#set, this.#groupModes);
   }
 }

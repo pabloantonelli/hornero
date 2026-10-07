@@ -277,18 +277,28 @@ automation:
 
 Every incoming message becomes a `hornero_message` event, and automations act
 on those, so an unfiltered inbox means any stranger can trigger them. Two
-filters narrow it down, both editable in the panel's **Incoming** tab:
+filters narrow it down, both editable in the panel's **Groups & contacts** tab:
 
-**The allowlist.** While it is empty every sender gets through. Add a person to
-accept their messages anywhere, or a group to accept everything posted in it.
-Add senders from the **Recent senders** list rather than typing an id: WhatsApp
-often addresses people by a LID (`173478…@lid`) that looks nothing like their
-phone number, and that is the id an incoming message carries.
+**The allowlist.** While it is empty every sender gets through. Once it has
+entries:
+
+- **An allowed person** gets through in a direct chat, and in allowed groups
+  set to _Only allowed contacts_. Allowing a person does not open groups that
+  are not on the list.
+- **An allowed group** lets through either _every member_ or _only allowed
+  contacts_, chosen per group. With _Only allowed contacts_ the panel lists
+  which allowed people are actually in the group, and warns when none are.
+
+Allow senders from the **Not allowed yet** or **Recent senders** lists rather
+than typing an id: WhatsApp often addresses people by a LID (`173478…@lid`)
+that looks nothing like their phone number, and that is the id an incoming
+message carries.
 
 **Groups: only when mentioned.** With Hornero's number in a group, every
 message anyone posts there reaches Home Assistant. Turn on
 `switch.hornero_groups_require_mention` and a group message is only passed on
-when it mentions Hornero's number or replies to a message Hornero sent. Direct
+when it mentions Hornero's number or replies to a message Hornero sent.
+Replying to someone else's message that mentioned Hornero does not count. Direct
 chats are never filtered this way.
 
 ---

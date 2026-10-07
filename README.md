@@ -129,17 +129,18 @@ that varies, or one not on the allowlist, use `hornero.send_message`.
 
 ## The Hornero panel
 
-Six tabs in the sidebar:
+Seven tabs in the sidebar:
 
 - **Status** — every client, with pairing by QR or 8-digit code.
-- **Groups & contacts** — your chats with profile pictures and search. Copy a
-  group's ID straight into a service call; group IDs cannot be derived from a
-  phone number, so this is how you get them.
+- **Send** — send a message or a camera snapshot to check everything end to end.
+- **Groups & contacts** — who may trigger your automations, next to your chats
+  with profile pictures and search. Copy a group's ID straight into a service
+  call; group IDs cannot be derived from a phone number, so this is how you get
+  them.
 - **Messages** — what was sent and received lately, with the delivery state of
   each outgoing message.
 - **Snippet builder** — pick an action, fill in the fields, and copy the call
   as Home Assistant YAML, as an importable Node-RED node, or as `curl`.
-- **Incoming** — who may trigger your automations.
 - **Settings** — behaviour you can change without restarting.
 - **Help** — services, events and addressing rules.
 
@@ -147,9 +148,14 @@ Six tabs in the sidebar:
 
 Incoming messages arrive as `hornero_message` events, and automations act on
 them. **While no sender is listed, anyone who writes to your number can trigger
-them.** Open the **Incoming** tab and add the senders you accept — recent
-senders are listed there with an **Allow** button, so you never have to work
-out an identifier by hand.
+them.** Open the **Groups & contacts** tab and allow the senders you accept —
+your chats and recent senders are listed there with an **Allow** button, so you
+never have to work out an identifier by hand.
+
+- **An allowed person** gets through in a direct chat, and in allowed groups set
+  to _Only allowed contacts_ — never in a group that is not on the list.
+- **An allowed group** lets through _every member_ or _only allowed contacts_,
+  chosen per group. The tab shows which allowed people are in each group.
 
 That matters because WhatsApp increasingly identifies people by a **LID**
 (`173478124720340@lid`) that does not reveal their phone number. Allowing a
@@ -243,8 +249,9 @@ Devices & services**; the dialog fills in from the file the add-on writes.
 
 **Services are missing.** Restart Home Assistant Core once after installing.
 
-**Messages arrive but nothing happens.** Check the **Incoming** tab: if the
-allowlist has entries, anyone outside it is ignored on purpose.
+**Messages arrive but nothing happens.** Check the **Groups & contacts** tab:
+if the allowlist has entries, anyone outside it is ignored on purpose, and a
+group set to _Only allowed contacts_ ignores members who are not allowed.
 
 ## Development
 

@@ -27,7 +27,9 @@ const boot = async (language = "en", routes = null) => {
       };
       // The panel polls on load; keep it offline and deterministic, except
       // for the routes a test asks to answer.
-      win.fetch = (url) => {
+      win.fetchCalls = [];
+      win.fetch = (url, opts) => {
+        win.fetchCalls.push({ url: String(url), opts });
         const hit =
           routes &&
           Object.entries(routes).find(([path]) => String(url).includes(path));
@@ -220,5 +222,90 @@ describe("panel: idiomas", () => {
   it("vuelve al inglés con un idioma que no soportamos", async () => {
     const window = await boot("ja");
     expect(tabLabels(window)).toContain("Settings");
+  });
+});
+
+describe("panel: grupos y contactos", () => {
+  const routes = {
+    "/chats": {
+      groups: [
+        {
+          id: "120363000@g.us",
+          name: "Familia",
+          participants: 3,
+          members: [
+            "173478124720340@lid",
+            "5491111111111@s.whatsapp.net",
+            "5492222222222@s.whatsapp.net",
+          ],
+        },
+        { id: "120363111@g.us", name: "Trabajo", participants: 8, members: [] },
+      ],
+      contacts: [
+        { id: "5491111111111@s.whatsapp.net", name: "Ana" },
+        { id: "5493333333333@s.whatsapp.net", name: "Beto" },
+      ],
+    },
+    "/allowlist": {
+      entries: ["120363000@g.us", "5491111111111@s.whatsapp.net"],
+      details: [
+        { id: "120363000@g.us", name: "Familia", mode: "members" },
+        { id: "5491111111111@s.whatsapp.net", name: "Ana" },
+      ],
+      groupModes: { "120363000@g.us": "members" },
+      open: false,
+    },
+    "/clients": { clients: [{ clientId: "default", connected: true }] },
+    health: { version: "test" },
+  };
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+
+  const loadChats = async (window) => {
+    window.document.querySelector('nav button[data-tab="chats"]').click();
+    await settle();
+    window.document.getElementById("chat-load").click();
+    await settle();
+  };
+
+  it("separa lo permitido de lo que todavía no lo está", async () => {
+    const window = await boot("es", routes);
+    await loadChats(window);
+
+    const allowed = window.document.getElementById("allow-list").textContent;
+    expect(allowed).toContain("Familia");
+    expect(allowed).toContain("Pueden escribir: Ana (1 de 3 miembros)");
+    expect(allowed).toContain("También en: Familia");
+
+    const pending = window.document.getElementById("chat-list").textContent;
+    expect(pending).toContain("Trabajo");
+    expect(pending).toContain("Beto");
+    expect(pending).not.toContain("Familia");
+    expect(pending).not.toContain("Ana");
+  });
+
+  it("la pestaña Ajustes ya no tiene la lista", async () => {
+    const window = await boot("es", routes);
+    const settings = window.document.querySelector('[data-panel="settings"]');
+    expect(settings.querySelector("#allow-list")).toBeNull();
+  });
+
+  it("cambiar el modo de un grupo lo guarda", async () => {
+    const window = await boot("es", routes);
+    await loadChats(window);
+
+    const select = window.document.querySelector(
+      'select[data-act="allow-mode"]',
+    );
+    select.value = "all";
+    select.dispatchEvent(new window.Event("change", { bubbles: true }));
+    await settle();
+
+    const put = window.fetchCalls.find(
+      (c) => c.url.includes("/allowlist") && c.opts?.method === "PUT",
+    );
+    expect(JSON.parse(put.opts.body).groupModes).toEqual({
+      "120363000@g.us": "all",
+    });
   });
 });

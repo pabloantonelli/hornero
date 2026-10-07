@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+### ⚠️ Breaking
+
+- **An allowed person no longer gets through in groups that are not allowed.**
+  Before, allowing someone accepted their messages anywhere, so anyone could
+  add you to a group with them and use it. Allow the group too, set to _Only
+  allowed contacts_, to keep receiving them there.
+
+### ✨ Added
+
+- **Choose who gets through in each allowed group**: every member, or only the
+  allowed contacts. Groups already on the list keep every member.
+- **The allowlist lives in the Groups & contacts tab.** Allowed groups and
+  contacts come first, with who is in each group and which groups each person
+  is in; everything else sits under _Not allowed yet_, and Allow moves it up.
+  The rules, and whether groups need a mention, are explained above the list.
+
+### 🐛 Fixed
+
+- **Groups: only when mentioned** let through replies to someone else's message
+  that had mentioned Hornero, and a typed number that merely started with
+  Hornero's. A reply now only counts when it quotes a message Hornero sent.
+
 ## 4.0.3
 
 ### ✨ Added

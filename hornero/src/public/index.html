@@ -344,6 +344,24 @@
     border-radius: 999px;
     padding: 1px 7px;
   }
+  .chat-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .chat-meta.err {
+    color: var(--danger);
+  }
+  .chat select.mode {
+    flex: none;
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    max-width: 100%;
+  }
+  .rules {
+    margin: 0 0 8px;
+  }
   .empty {
     color: var(--muted);
     font-size: 0.85rem;
@@ -836,15 +854,45 @@
 
   <section data-panel="chats" hidden>
     <div class="card">
+      <h3 data-i18n="who_triggers">Who may write to Hornero</h3>
+      <p class="msg rules" data-i18n-html="allow_rules"></p>
+      <p class="msg rules" id="mention-state"></p>
+      <p class="msg" id="allow-state"></p>
       <div class="row">
         <input type="search" data-i18n-placeholder="search" id="chat-search" />
         <select id="chat-client"></select>
         <button class="primary" id="chat-load" data-i18n="load">Load</button>
       </div>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="allowed_title">Allowed</h3>
+      <div id="allow-list"></div>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="not_allowed_title">Not allowed yet</h3>
       <p class="msg" data-i18n-html="copy_hint"></p>
       <div class="list" id="chat-list">
         <p class="empty">Press Load to fetch your groups and contacts.</p>
       </div>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="recent">Recent senders</h3>
+      <p class="msg" style="margin-top: 0" data-i18n-html="recent_hint"></p>
+      <div class="list" id="recent-list"></div>
+
+      <p class="section-label" data-i18n="add_manually">Add manually</p>
+      <div class="row">
+        <input
+          type="text"
+          id="allow-input"
+          data-i18n-placeholder="send_to_ph"
+        />
+        <button class="primary" id="allow-add" data-i18n="add">Add</button>
+      </div>
+      <p class="msg" data-i18n-html="incoming_hint"></p>
     </div>
   </section>
 
@@ -917,24 +965,16 @@
     </div>
 
     <div class="card">
-      <h3 data-i18n="who_triggers">Who may trigger automations</h3>
-      <p class="msg" id="allow-state"></p>
-      <div class="list" id="allow-list"></div>
-
-      <p class="section-label" data-i18n="recent">Recent senders</p>
-      <p class="msg" style="margin-top: 0" data-i18n-html="recent_hint"></p>
-      <div class="list" id="recent-list"></div>
-
-      <p class="section-label" data-i18n="add_manually">Add manually</p>
-      <div class="row">
-        <input
-          type="text"
-          id="allow-input"
-          data-i18n-placeholder="send_to_ph"
-        />
-        <button class="primary" id="allow-add" data-i18n="add">Add</button>
-      </div>
-      <p class="msg" data-i18n-html="incoming_hint"></p>
+      <h3 data-i18n="who_triggers">Who may write to Hornero</h3>
+      <p class="msg" data-i18n="allow_moved"></p>
+      <button
+        class="ghost"
+        data-act="goto-tab"
+        data-tab-target="chats"
+        data-i18n="tab_chats"
+      >
+        Groups &amp; contacts
+      </button>
     </div>
   </section>
 
@@ -1186,7 +1226,7 @@
       recent_hint:
         "Whoever wrote to you lately. Use Allow here rather than typing an ID by hand — WhatsApp often identifies people by a code that looks nothing like their phone number.",
       incoming_hint:
-        "Incoming messages reach Home Assistant as <code>hornero_message</code> events, and automations act on them. While this list is empty, anyone who writes to you can trigger them. Add a group to accept everything posted in it, or a person to accept them anywhere. In a group this accepts everything anyone posts; to receive only what is addressed to Hornero, turn on <b>Groups: only when Hornero is mentioned or quoted</b> under Settings.",
+        "Incoming messages reach Home Assistant as <code>hornero_message</code> events, and automations act on them. Groups need their ID; people may be entered by phone number with country code.",
       settings_hint:
         "These are shared with the Hornero entities in Home Assistant: change them here or there, whichever is handier. Changes apply immediately unless marked otherwise. The add-on options only provide the initial values.",
       h_services: "Services",
@@ -1224,6 +1264,31 @@
       st_delivered: "delivered",
       st_read: "read",
       st_failed: "failed",
+      allowed_title: "Allowed",
+      not_allowed_title: "Not allowed yet",
+      allowed_groups: "Allowed groups",
+      allowed_contacts: "Allowed contacts",
+      no_allowed_groups: "No group allowed.",
+      no_allowed_contacts: "No contact allowed.",
+      mode_all: "Every member",
+      mode_members: "Only allowed contacts",
+      mode_all_line: "All {n} members get through",
+      allowed_here: "allowed contacts here: {names}",
+      mode_members_line: "Can write: {names} ({k} of {n} members)",
+      mode_members_none:
+        "No allowed contact is in this group, so nothing gets through.",
+      load_to_see: "Press Load to see who is in it.",
+      in_groups: "Also in: {names}",
+      in_no_group: "Private chat only — not in any allowed group.",
+      allow_rules:
+        "<b>An allowed contact</b> can write to Hornero privately, and in allowed groups set to <b>Only allowed contacts</b>. Allowing a person does not open groups that are not on the list.<br><b>An allowed group</b> lets through <b>every member</b> or <b>only allowed contacts</b> — you choose per group.<br>While the list is empty, anyone who writes to you reaches Home Assistant.",
+      mention_on:
+        "In groups, a message only gets through when it mentions Hornero or replies to one of its messages.",
+      mention_off:
+        "In groups, every message from an allowed sender gets through, whether it mentions Hornero or not.",
+      change_in_settings: "Change",
+      allow_moved:
+        "Who may write to Hornero is managed in the Groups & contacts tab, next to your groups and contacts.",
     },
     es: {
       tab_status: "Estado",
@@ -1359,7 +1424,7 @@
       recent_hint:
         "Quienes te escribieron últimamente. Usá Permitir acá en vez de escribir un ID a mano: WhatsApp suele identificar a la gente con un código que no se parece a su número.",
       incoming_hint:
-        "Los mensajes entrantes llegan a Home Assistant como eventos <code>hornero_message</code>, y las automatizaciones actúan sobre ellos. Mientras esta lista esté vacía, cualquiera que te escriba puede dispararlas. Agregá un grupo para aceptar todo lo que se publique ahí, o una persona para aceptarla en cualquier lado. En un grupo esto acepta todo lo que escriba cualquiera; para recibir solo lo dirigido a Hornero, activá <b>En grupos, solo si arrobás o citás a Hornero</b> en Ajustes.",
+        "Los mensajes entrantes llegan a Home Assistant como eventos <code>hornero_message</code>, y las automatizaciones actúan sobre ellos. Los grupos necesitan su ID; a las personas podés ingresarlas por número con código de país.",
       settings_hint:
         "Estos ajustes son los mismos que las entidades de Hornero en Home Assistant: cambialos acá o allá, lo que te resulte más cómodo. Se aplican al instante salvo que estén marcados. Las opciones del add-on sólo dan los valores iniciales.",
       h_services: "Servicios",
@@ -1397,6 +1462,31 @@
       st_delivered: "entregado",
       st_read: "leído",
       st_failed: "falló",
+      allowed_title: "Permitidos",
+      not_allowed_title: "Todavía no permitidos",
+      allowed_groups: "Grupos permitidos",
+      allowed_contacts: "Contactos permitidos",
+      no_allowed_groups: "No hay grupos permitidos.",
+      no_allowed_contacts: "No hay contactos permitidos.",
+      mode_all: "Todos los miembros",
+      mode_members: "Solo contactos habilitados",
+      mode_all_line: "Pasan los {n} miembros",
+      allowed_here: "contactos habilitados acá: {names}",
+      mode_members_line: "Pueden escribir: {names} ({k} de {n} miembros)",
+      mode_members_none:
+        "Ningún contacto habilitado está en este grupo: no va a pasar nada.",
+      load_to_see: "Tocá Cargar para ver quiénes están.",
+      in_groups: "También en: {names}",
+      in_no_group: "Solo por privado: no está en ningún grupo permitido.",
+      allow_rules:
+        "<b>Un contacto permitido</b> puede escribirle a Hornero por privado, y en los grupos permitidos configurados como <b>Solo contactos habilitados</b>. Permitir a una persona no habilita grupos que no estén en la lista.<br><b>Un grupo permitido</b> deja pasar a <b>todos los miembros</b> o <b>solo a los contactos habilitados</b>: lo elegís por grupo.<br>Mientras la lista esté vacía, cualquiera que te escriba llega a Home Assistant.",
+      mention_on:
+        "En grupos, un mensaje solo pasa si arroba a Hornero o responde a un mensaje suyo.",
+      mention_off:
+        "En grupos, pasa cualquier mensaje de un remitente permitido, arrobe o no a Hornero.",
+      change_in_settings: "Cambiar",
+      allow_moved:
+        "Quién puede escribirle a Hornero se gestiona en la pestaña Grupos y contactos, junto a tus grupos y contactos.",
     },
     "pt-BR": {
       tab_status: "Status",
@@ -1532,7 +1622,7 @@
       recent_hint:
         "Quem escreveu para você recentemente. Use Permitir aqui em vez de digitar um ID à mão — o WhatsApp costuma identificar pessoas por um código que não se parece com o número.",
       incoming_hint:
-        "As mensagens recebidas chegam ao Home Assistant como eventos <code>hornero_message</code>, e as automações agem sobre elas. Enquanto esta lista estiver vazia, qualquer um que escrever pode dispará-las. Adicione um grupo para aceitar tudo que for publicado nele, ou uma pessoa para aceitá-la em qualquer lugar. Num grupo isto aceita tudo o que qualquer um escreva; para receber só o que é dirigido ao Hornero, ligue <b>Em grupos, apenas quando mencionam ou citam o Hornero</b> em Definições.",
+        "As mensagens recebidas chegam ao Home Assistant como eventos <code>hornero_message</code>, e as automações agem sobre elas. Grupos precisam do ID; pessoas podem ser informadas pelo número com código do país.",
       settings_hint:
         "Estes ajustes são os mesmos das entidades do Hornero no Home Assistant: altere aqui ou lá, como for mais prático. Aplicam-se imediatamente, salvo indicação em contrário. As opções do add-on fornecem apenas os valores iniciais.",
       h_services: "Serviços",
@@ -1570,6 +1660,31 @@
       st_delivered: "entregue",
       st_read: "lido",
       st_failed: "falhou",
+      allowed_title: "Permitidos",
+      not_allowed_title: "Ainda não permitidos",
+      allowed_groups: "Grupos permitidos",
+      allowed_contacts: "Contatos permitidos",
+      no_allowed_groups: "Nenhum grupo permitido.",
+      no_allowed_contacts: "Nenhum contato permitido.",
+      mode_all: "Todos os membros",
+      mode_members: "Só contatos permitidos",
+      mode_all_line: "Passam os {n} membros",
+      allowed_here: "contatos permitidos aqui: {names}",
+      mode_members_line: "Podem escrever: {names} ({k} de {n} membros)",
+      mode_members_none:
+        "Nenhum contato permitido está neste grupo: nada vai passar.",
+      load_to_see: "Toque em Carregar para ver quem está nele.",
+      in_groups: "Também em: {names}",
+      in_no_group: "Só no privado: não está em nenhum grupo permitido.",
+      allow_rules:
+        "<b>Um contato permitido</b> pode escrever para o Hornero no privado, e nos grupos permitidos configurados como <b>Só contatos permitidos</b>. Permitir uma pessoa não libera grupos que não estejam na lista.<br><b>Um grupo permitido</b> deixa passar <b>todos os membros</b> ou <b>só os contatos permitidos</b> — você escolhe por grupo.<br>Enquanto a lista estiver vazia, qualquer um que escrever chega ao Home Assistant.",
+      mention_on:
+        "Em grupos, uma mensagem só passa se mencionar o Hornero ou responder a uma mensagem dele.",
+      mention_off:
+        "Em grupos, passa qualquer mensagem de um remetente permitido, mencionando o Hornero ou não.",
+      change_in_settings: "Alterar",
+      allow_moved:
+        "Quem pode escrever para o Hornero é gerenciado na aba Grupos e contatos, junto com seus grupos e contatos.",
     },
     de: {
       tab_status: "Status",
@@ -1705,7 +1820,7 @@
       recent_hint:
         "Wer Ihnen zuletzt geschrieben hat. Hier auf Erlauben tippen, statt eine ID von Hand einzugeben — WhatsApp kennzeichnet Personen oft mit einem Code, der nichts mit ihrer Nummer zu tun hat.",
       incoming_hint:
-        "Eingehende Nachrichten erreichen Home Assistant als <code>hornero_message</code>-Ereignisse, auf die Automationen reagieren. Solange diese Liste leer ist, kann jeder, der schreibt, sie auslösen. Fügen Sie eine Gruppe hinzu, um alles darin zu akzeptieren, oder eine Person, um sie überall zu akzeptieren. In einer Gruppe wird damit alles angenommen, was jemand schreibt; für nur an Hornero gerichtete Nachrichten aktiviere <b>In Gruppen nur, wenn Hornero erwähnt oder zitiert wird</b> in den Einstellungen.",
+        "Eingehende Nachrichten erreichen Home Assistant als <code>hornero_message</code>-Ereignisse, auf die Automationen reagieren. Gruppen brauchen ihre ID; Personen können per Nummer mit Ländervorwahl eingetragen werden.",
       settings_hint:
         "Diese Einstellungen teilen sich mit den Hornero-Entitäten in Home Assistant: Ändern Sie sie hier oder dort, wie es bequemer ist. Änderungen gelten sofort, sofern nicht anders vermerkt. Die Add-on-Optionen liefern nur die Startwerte.",
       h_services: "Dienste",
@@ -1743,6 +1858,31 @@
       st_delivered: "zugestellt",
       st_read: "gelesen",
       st_failed: "fehlgeschlagen",
+      allowed_title: "Erlaubt",
+      not_allowed_title: "Noch nicht erlaubt",
+      allowed_groups: "Erlaubte Gruppen",
+      allowed_contacts: "Erlaubte Kontakte",
+      no_allowed_groups: "Keine Gruppe erlaubt.",
+      no_allowed_contacts: "Kein Kontakt erlaubt.",
+      mode_all: "Alle Mitglieder",
+      mode_members: "Nur erlaubte Kontakte",
+      mode_all_line: "Alle {n} Mitglieder kommen durch",
+      allowed_here: "erlaubte Kontakte hier: {names}",
+      mode_members_line: "Dürfen schreiben: {names} ({k} von {n} Mitgliedern)",
+      mode_members_none:
+        "Kein erlaubter Kontakt ist in dieser Gruppe – es kommt nichts durch.",
+      load_to_see: "Auf Laden tippen, um die Mitglieder zu sehen.",
+      in_groups: "Auch in: {names}",
+      in_no_group: "Nur im Einzelchat – in keiner erlaubten Gruppe.",
+      allow_rules:
+        "<b>Ein erlaubter Kontakt</b> kann Hornero im Einzelchat schreiben und in erlaubten Gruppen mit <b>Nur erlaubte Kontakte</b>. Eine Person zu erlauben öffnet keine Gruppen, die nicht auf der Liste stehen.<br><b>Eine erlaubte Gruppe</b> lässt <b>alle Mitglieder</b> oder <b>nur erlaubte Kontakte</b> durch – pro Gruppe wählbar.<br>Solange die Liste leer ist, erreicht jeder, der schreibt, Home Assistant.",
+      mention_on:
+        "In Gruppen kommt eine Nachricht nur durch, wenn sie Hornero erwähnt oder auf eine seiner Nachrichten antwortet.",
+      mention_off:
+        "In Gruppen kommt jede Nachricht eines erlaubten Absenders durch, ob sie Hornero erwähnt oder nicht.",
+      change_in_settings: "Ändern",
+      allow_moved:
+        "Wer Hornero schreiben darf, wird im Tab Gruppen & Kontakte verwaltet, direkt bei Ihren Gruppen und Kontakten.",
     },
     fr: {
       tab_status: "Statut",
@@ -1881,7 +2021,7 @@
       recent_hint:
         "Qui vous a écrit récemment. Utilisez Autoriser ici plutôt que de saisir un ID à la main — WhatsApp identifie souvent les gens par un code sans rapport avec leur numéro.",
       incoming_hint:
-        "Les messages entrants arrivent dans Home Assistant comme événements <code>hornero_message</code>, et les automatisations y réagissent. Tant que cette liste est vide, quiconque vous écrit peut les déclencher. Ajoutez un groupe pour accepter tout ce qui y est publié, ou une personne pour l'accepter partout. Dans un groupe, tout ce qu’écrit n’importe qui est accepté ; pour ne recevoir que ce qui s’adresse à Hornero, activez <b>Dans les groupes, seulement si Hornero est mentionné ou cité</b> dans les Réglages.",
+        "Les messages entrants arrivent dans Home Assistant comme événements <code>hornero_message</code>, et les automatisations y réagissent. Les groupes ont besoin de leur ID ; les personnes peuvent être saisies par numéro avec indicatif.",
       settings_hint:
         "Ces réglages sont partagés avec les entités Hornero dans Home Assistant : modifiez-les ici ou là, au plus pratique. Ils s'appliquent immédiatement sauf mention contraire. Les options du module ne fournissent que les valeurs initiales.",
       h_services: "Services",
@@ -1919,6 +2059,31 @@
       st_delivered: "remis",
       st_read: "lu",
       st_failed: "échec",
+      allowed_title: "Autorisés",
+      not_allowed_title: "Pas encore autorisés",
+      allowed_groups: "Groupes autorisés",
+      allowed_contacts: "Contacts autorisés",
+      no_allowed_groups: "Aucun groupe autorisé.",
+      no_allowed_contacts: "Aucun contact autorisé.",
+      mode_all: "Tous les membres",
+      mode_members: "Seulement les contacts autorisés",
+      mode_all_line: "Les {n} membres passent",
+      allowed_here: "contacts autorisés ici : {names}",
+      mode_members_line: "Peuvent écrire : {names} ({k} sur {n} membres)",
+      mode_members_none:
+        "Aucun contact autorisé n'est dans ce groupe : rien ne passera.",
+      load_to_see: "Appuyez sur Charger pour voir qui en fait partie.",
+      in_groups: "Aussi dans : {names}",
+      in_no_group: "Seulement en privé : dans aucun groupe autorisé.",
+      allow_rules:
+        "<b>Un contact autorisé</b> peut écrire à Hornero en privé, et dans les groupes autorisés réglés sur <b>Seulement les contacts autorisés</b>. Autoriser une personne n'ouvre pas les groupes absents de la liste.<br><b>Un groupe autorisé</b> laisse passer <b>tous les membres</b> ou <b>seulement les contacts autorisés</b> — au choix, groupe par groupe.<br>Tant que la liste est vide, quiconque vous écrit atteint Home Assistant.",
+      mention_on:
+        "Dans les groupes, un message ne passe que s'il mentionne Hornero ou répond à l'un de ses messages.",
+      mention_off:
+        "Dans les groupes, tout message d'un expéditeur autorisé passe, qu'il mentionne Hornero ou non.",
+      change_in_settings: "Modifier",
+      allow_moved:
+        "Qui peut écrire à Hornero se gère dans l'onglet Groupes et contacts, à côté de vos groupes et contacts.",
     },
     it: {
       tab_status: "Stato",
@@ -2055,7 +2220,7 @@
       recent_hint:
         "Chi ti ha scritto di recente. Usa Consenti qui invece di digitare un ID a mano — WhatsApp identifica spesso le persone con un codice che non somiglia al loro numero.",
       incoming_hint:
-        "I messaggi in arrivo raggiungono Home Assistant come eventi <code>hornero_message</code>, e le automazioni agiscono su di essi. Finché questo elenco è vuoto, chiunque ti scriva può attivarle. Aggiungi un gruppo per accettare tutto ciò che vi viene pubblicato, o una persona per accettarla ovunque. In un gruppo così si accetta tutto ciò che scrive chiunque; per ricevere solo quanto è rivolto a Hornero, attiva <b>Nei gruppi, solo quando Hornero è menzionato o citato</b> in Impostazioni.",
+        "I messaggi in arrivo raggiungono Home Assistant come eventi <code>hornero_message</code>, e le automazioni agiscono su di essi. I gruppi richiedono il loro ID; le persone si possono inserire col numero e il prefisso internazionale.",
       settings_hint:
         "Queste impostazioni sono condivise con le entità Hornero in Home Assistant: modificale qui o lì, come preferisci. Si applicano subito salvo diversa indicazione. Le opzioni del componente forniscono solo i valori iniziali.",
       h_services: "Servizi",
@@ -2093,6 +2258,31 @@
       st_delivered: "consegnato",
       st_read: "letto",
       st_failed: "non riuscito",
+      allowed_title: "Consentiti",
+      not_allowed_title: "Non ancora consentiti",
+      allowed_groups: "Gruppi consentiti",
+      allowed_contacts: "Contatti consentiti",
+      no_allowed_groups: "Nessun gruppo consentito.",
+      no_allowed_contacts: "Nessun contatto consentito.",
+      mode_all: "Tutti i membri",
+      mode_members: "Solo contatti consentiti",
+      mode_all_line: "Passano tutti i {n} membri",
+      allowed_here: "contatti consentiti qui: {names}",
+      mode_members_line: "Possono scrivere: {names} ({k} di {n} membri)",
+      mode_members_none:
+        "Nessun contatto consentito è in questo gruppo: non passerà niente.",
+      load_to_see: "Tocca Carica per vedere chi ne fa parte.",
+      in_groups: "Anche in: {names}",
+      in_no_group: "Solo in privato: non è in nessun gruppo consentito.",
+      allow_rules:
+        "<b>Un contatto consentito</b> può scrivere a Hornero in privato, e nei gruppi consentiti impostati su <b>Solo contatti consentiti</b>. Consentire una persona non apre i gruppi che non sono nell'elenco.<br><b>Un gruppo consentito</b> lascia passare <b>tutti i membri</b> o <b>solo i contatti consentiti</b> — lo scegli per ogni gruppo.<br>Finché l'elenco è vuoto, chiunque ti scriva raggiunge Home Assistant.",
+      mention_on:
+        "Nei gruppi, un messaggio passa solo se menziona Hornero o risponde a un suo messaggio.",
+      mention_off:
+        "Nei gruppi passa ogni messaggio di un mittente consentito, che menzioni Hornero o no.",
+      change_in_settings: "Cambia",
+      allow_moved:
+        "Chi può scrivere a Hornero si gestisce nella scheda Gruppi e contatti, accanto ai tuoi gruppi e contatti.",
     },
   };
 
@@ -2167,7 +2357,8 @@
     document.querySelectorAll("[data-panel]").forEach((p) => {
       p.hidden = p.dataset.panel !== btn.dataset.tab;
     });
-    if (btn.dataset.tab === "settings") {
+    if (btn.dataset.tab === "settings") loadSettings({ force: true });
+    if (btn.dataset.tab === "chats") {
       refreshRecent();
       loadSettings({ force: true });
     }
@@ -2265,9 +2456,13 @@
 
   /* --------------------------------------------------------------- chats */
 
-  function chatRow(item, clientId, isGroup) {
+  function chatRow(item, clientId, isGroup, actions = null, extra = "") {
     const initial = (item.name || "?").trim().charAt(0).toUpperCase();
     const hue = [...item.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 360;
+    const members =
+      isGroup && item.participants != null
+        ? `<span class="group-tag">${item.participants} ${t("members")}</span>`
+        : "";
     return `
       <div class="chat">
         <div class="avatar"
@@ -2275,36 +2470,160 @@
              data-avatar="${esc(item.id)}"
              data-client="${esc(clientId)}">${esc(initial)}</div>
         <div class="chat-main">
-          <div class="chat-name">
-            ${esc(item.name)}
-            ${isGroup ? `<span class="group-tag">${item.participants} ${t("members")}</span>` : ""}
-          </div>
+          <div class="chat-name">${esc(item.name || item.id)} ${members}</div>
           <div class="jid">${esc(item.id)}</div>
+          ${extra}
         </div>
-        <button class="tiny" data-act="copy" data-jid="${esc(item.id)}">${t("copy_id")}</button>
-        <button class="tiny" data-act="allow-add-chat" data-jid="${esc(item.id)}">${t("allow")}</button>
+        ${
+          actions ??
+          `<button class="tiny" data-act="copy" data-jid="${esc(item.id)}">${t("copy_id")}</button>
+        <button class="tiny" data-act="allow-add-chat" data-jid="${esc(item.id)}">${t("allow")}</button>`
+        }
       </div>`;
   }
 
+  /** Strips the device suffix, as the add-on does when matching. */
+  const bareJid = (jid) => String(jid ?? "").replace(/:\d+(?=@)/, "");
+  const isGroupJid = (jid) => String(jid ?? "").endsWith("@g.us");
+  const fill = (key, values) =>
+    Object.entries(values).reduce(
+      (text, [k, v]) => text.replaceAll(`{${k}}`, v),
+      t(key),
+    );
+
+  /**
+   * Splits everything into what is on the allowlist and what is not, and for
+   * each allowed group works out which allowed contacts are in it, since in
+   * "members" mode those are the only ones who get through.
+   */
   function renderChats() {
     const clientId = document.getElementById("chat-client").value;
     const chats = state.chats[clientId];
-    const list = document.getElementById("chat-list");
-    if (!chats) {
-      list.innerHTML =
-        '<p class="empty">Press Load to fetch your groups and contacts.</p>';
-      return;
-    }
 
     const needle = document
       .getElementById("chat-search")
       .value.trim()
       .toLowerCase();
-    const hit = (n) => !needle || n.toLowerCase().includes(needle);
-    const groups = chats.groups.filter((g) => hit(g.name));
-    const contacts = chats.contacts.filter((c) => hit(c.name));
+    const hit = (item) =>
+      !needle ||
+      String(item.name || "")
+        .toLowerCase()
+        .includes(needle) ||
+      item.id.toLowerCase().includes(needle);
 
-    list.innerHTML = `
+    const allowSet = new Set(allowEntries.map(bareJid));
+    const isAllowedId = (id) => allowSet.has(bareJid(id));
+    const groupsById = new Map((chats?.groups || []).map((g) => [g.id, g]));
+    const contactsById = new Map(
+      (chats?.contacts || []).map((c) => [bareJid(c.id), c]),
+    );
+    const detailNames = new Map(allowDetails.map((d) => [d.id, d.name]));
+    const nameOf = (id) =>
+      detailNames.get(id) ||
+      contactsById.get(bareJid(id))?.name ||
+      groupsById.get(id)?.name ||
+      id.split("@")[0];
+
+    const allowedContacts = allowEntries.filter((id) => !isGroupJid(id));
+    const allowedGroups = allowEntries.filter(isGroupJid);
+    const membersOf = (group) =>
+      group?.members ? new Set(group.members.map(bareJid)) : null;
+    const allowedIn = (group) => {
+      const members = membersOf(group);
+      return members
+        ? allowedContacts.filter((id) => members.has(bareJid(id)))
+        : null;
+    };
+
+    const groupRows = allowedGroups
+      .map((id) => ({ id, name: nameOf(id), group: groupsById.get(id) }))
+      .filter(hit)
+      .map(({ id, name, group }) => {
+        const mode = allowModes[id] || "all";
+        const here = allowedIn(group);
+        const names = (here || []).map(nameOf).join(", ");
+        let line;
+        if (!here) {
+          line = `<div class="chat-meta">${t("load_to_see")}</div>`;
+        } else if (mode === "members") {
+          line = here.length
+            ? `<div class="chat-meta">${esc(
+                fill("mode_members_line", {
+                  names,
+                  k: here.length,
+                  n: group.participants,
+                }),
+              )}</div>`
+            : `<div class="chat-meta err">${t("mode_members_none")}</div>`;
+        } else {
+          line = `<div class="chat-meta">${esc(
+            fill("mode_all_line", { n: group.participants }) +
+              (here.length ? " · " + fill("allowed_here", { names }) : ""),
+          )}</div>`;
+        }
+        const select = `<select class="mode" data-act="allow-mode" data-jid="${esc(id)}">
+            ${["all", "members"]
+              .map(
+                (m) =>
+                  `<option value="${m}" ${m === mode ? "selected" : ""}>${t("mode_" + m)}</option>`,
+              )
+              .join("")}
+          </select>`;
+        return chatRow(
+          {
+            id,
+            name,
+            participants: group?.participants,
+          },
+          clientId,
+          true,
+          `<button class="tiny" data-act="allow-remove" data-jid="${esc(id)}">${t("remove")}</button>`,
+          line + select,
+        );
+      });
+
+    const loadedAllowedGroups = allowedGroups
+      .map((id) => groupsById.get(id))
+      .filter(Boolean);
+    const contactRows = allowedContacts
+      .map((id) => ({ id, name: nameOf(id) }))
+      .filter(hit)
+      .map(({ id, name }) => {
+        let line = "";
+        if (chats) {
+          const where = loadedAllowedGroups
+            .filter((g) => membersOf(g)?.has(bareJid(id)))
+            .map((g) => g.name);
+          line = `<div class="chat-meta">${esc(
+            where.length
+              ? fill("in_groups", { names: where.join(", ") })
+              : t("in_no_group"),
+          )}</div>`;
+        }
+        return chatRow(
+          { id, name },
+          clientId,
+          false,
+          `<button class="tiny" data-act="allow-remove" data-jid="${esc(id)}">${t("remove")}</button>`,
+          line,
+        );
+      });
+
+    document.getElementById("allow-list").innerHTML = `
+      <p class="section-label">${t("allowed_groups")} (${groupRows.length})</p>
+      ${groupRows.join("") || `<p class="empty">${t("no_allowed_groups")}</p>`}
+      <p class="section-label">${t("allowed_contacts")} (${contactRows.length})</p>
+      ${contactRows.join("") || `<p class="empty">${t("no_allowed_contacts")}</p>`}`;
+
+    const list = document.getElementById("chat-list");
+    if (!chats) {
+      list.innerHTML = `<p class="empty">${t("press_load")}</p>`;
+    } else {
+      const groups = chats.groups.filter((g) => hit(g) && !isAllowedId(g.id));
+      const contacts = chats.contacts.filter(
+        (c) => hit(c) && !isAllowedId(c.id),
+      );
+      list.innerHTML = `
       <p class="section-label">${t("groups")} (${groups.length})</p>
       ${
         groups.length
@@ -2317,6 +2636,7 @@
           ? contacts.map((c) => chatRow(c, clientId, false)).join("")
           : `<p class="empty">${t("no_contacts")}</p>`
       }`;
+    }
 
     loadAvatars();
   }
@@ -2374,6 +2694,22 @@
   }
 
   document.getElementById("chat-search").addEventListener("input", renderChats);
+  document
+    .getElementById("allow-list")
+    .addEventListener("change", async (e) => {
+      const select = e.target.closest('select[data-act="allow-mode"]');
+      if (!select) return;
+      select.disabled = true;
+      try {
+        await saveAllowlist(allowEntries, {
+          ...allowModes,
+          [select.dataset.jid]: select.value,
+        });
+      } catch (err) {
+        document.getElementById("allow-state").textContent = err.message;
+        select.disabled = false;
+      }
+    });
   document
     .getElementById("chat-client")
     .addEventListener("change", renderChats);
@@ -2772,10 +3108,16 @@
       btn.disabled = true;
       try {
         await saveAllowlist([...allowEntries, btn.dataset.jid]);
-        btn.textContent = "Allowed";
+        btn.textContent = t("allowed");
       } finally {
         btn.disabled = false;
       }
+      return;
+    }
+    if (act === "goto-tab") {
+      document
+        .querySelector(`nav button[data-tab="${btn.dataset.tabTarget}"]`)
+        ?.click();
       return;
     }
 
@@ -3013,37 +3355,33 @@
 
   let allowEntries = [];
   let allowDetails = [];
+  let allowModes = {};
 
   function renderAllowlist() {
-    const list = document.getElementById("allow-list");
     const stateLine = document.getElementById("allow-state");
-
     stateLine.textContent = allowEntries.length
       ? t("allow_only").replace("{n}", allowEntries.length)
       : t("allow_empty");
     stateLine.className = allowEntries.length ? "msg" : "msg err";
+    renderChats();
+  }
 
-    // The name, when WhatsApp has synced one: a bare LID tells nobody who this is.
-    const names = new Map(allowDetails.map((d) => [d.id, d.name]));
+  /** Whether the "only when mentioned" rule is on, next to the allowlist. */
+  function renderMentionState() {
+    const el = document.getElementById("mention-state");
+    if (!el) return;
+    el.innerHTML = `${t(
+      settingsValues.groupsRequireMention ? "mention_on" : "mention_off",
+    )} <button class="tiny" data-act="goto-tab" data-tab-target="settings">${t(
+      "change_in_settings",
+    )}</button>`;
+  }
 
-    list.innerHTML = allowEntries.length
-      ? allowEntries
-          .map((jid) => {
-            const name = names.get(jid);
-            return `
-      <div class="chat">
-        <div class="avatar" style="background: var(--clay)">${esc(
-          (name || jid).slice(0, 2).toUpperCase(),
-        )}</div>
-        <div class="chat-main">
-          ${name ? `<div class="chat-name">${esc(name)}</div>` : ""}
-          <div class="jid">${esc(jid)}</div>
-        </div>
-        <button class="tiny" data-act="allow-remove" data-jid="${esc(jid)}">${t("remove")}</button>
-      </div>`;
-          })
-          .join("")
-      : "";
+  function applyAllowlist(res) {
+    allowEntries = res.entries;
+    allowDetails = res.details || [];
+    allowModes = res.groupModes || {};
+    renderAllowlist();
   }
 
   function renderRecent(senders) {
@@ -3084,15 +3422,13 @@
     }
   }
 
-  async function saveAllowlist(entries) {
+  async function saveAllowlist(entries, groupModes = allowModes) {
     const res = await api("/allowlist", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entries }),
+      body: JSON.stringify({ entries, groupModes }),
     });
-    allowEntries = res.entries;
-    allowDetails = res.details || [];
-    renderAllowlist();
+    applyAllowlist(res);
     refreshRecent();
     fillSendSuggestions();
   }
@@ -3133,6 +3469,7 @@
   let restartRequired = [];
 
   function renderSettings() {
+    renderMentionState();
     document.getElementById("settings-form").innerHTML = SETTINGS_FIELDS.map(
       ([key, type, a, b]) => {
         const value = settingsValues[key];
@@ -3286,9 +3623,7 @@
 
   api("/allowlist")
     .then((res) => {
-      allowEntries = res.entries;
-      allowDetails = res.details || [];
-      renderAllowlist();
+      applyAllowlist(res);
       refreshRecent();
       fillSendSuggestions();
     })

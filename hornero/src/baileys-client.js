@@ -428,6 +428,11 @@ export class BaileysClient extends EventEmitter2 {
           id: group.id,
           name: group.subject,
           participants: group.participants?.length ?? 0,
+          // Every form of each member's identity (LID and phone), so the
+          // panel can tell which allowed people are in the group.
+          members: (group.participants ?? []).flatMap((p) =>
+            [p.id, p.lid, p.phoneNumber, p.jid].filter(Boolean),
+          ),
           announce: Boolean(group.announce),
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
