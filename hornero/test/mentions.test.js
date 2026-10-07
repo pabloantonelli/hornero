@@ -38,6 +38,7 @@ describe("addressesMe", () => {
         group({
           extendedTextMessage: {
             contextInfo: {
+              stanzaId: "3EB0ABC",
               participant: "5491122334455@s.whatsapp.net",
               quotedMessage: { conversation: "alarm armed" },
             },
@@ -73,6 +74,75 @@ describe("addressesMe", () => {
         OWN,
       ),
     ).toBe(false);
+  });
+
+  it("ignores a reply to someone else's message that mentioned us", () => {
+    expect(
+      addressesMe(
+        group({
+          extendedTextMessage: {
+            text: "jaja",
+            contextInfo: {
+              stanzaId: "3EB0ABC",
+              participant: "5491199999999@s.whatsapp.net",
+              quotedMessage: {
+                extendedTextMessage: {
+                  text: "@5491122334455 prendé la luz",
+                  contextInfo: {
+                    mentionedJid: ["5491122334455@s.whatsapp.net"],
+                  },
+                },
+              },
+            },
+          },
+        }),
+        OWN,
+      ),
+    ).toBe(false);
+  });
+
+  it("matches a number typed by hand, but not a longer one", () => {
+    const typed = (text) =>
+      addressesMe(group({ extendedTextMessage: { text } }), OWN);
+
+    expect(typed("@5491122334455 prendé la luz")).toBe(true);
+    expect(typed("hola @173478124720340")).toBe(true);
+    expect(typed("@54911223344559 prendé la luz")).toBe(false);
+  });
+
+  it("matches a number typed in a caption", () => {
+    expect(
+      addressesMe(
+        group({ imageMessage: { caption: "mirá @5491122334455" } }),
+        OWN,
+      ),
+    ).toBe(true);
+  });
+
+  it("needs a real reply, not just our id as participant", () => {
+    expect(
+      addressesMe(
+        group({
+          extendedTextMessage: {
+            contextInfo: { participant: "5491122334455@s.whatsapp.net" },
+          },
+        }),
+        OWN,
+      ),
+    ).toBe(false);
+  });
+
+  it("matches a LID mention when our LID carries a device suffix", () => {
+    expect(
+      addressesMe(
+        group({
+          extendedTextMessage: {
+            contextInfo: { mentionedJid: ["173478124720340@lid"] },
+          },
+        }),
+        ["5491122334455@s.whatsapp.net", "173478124720340:12@lid"],
+      ),
+    ).toBe(true);
   });
 
   it("is false when the account identity is not known yet", () => {

@@ -7,7 +7,7 @@ import { loadConfig, VERSION } from "./config.js";
 import { HomeAssistant } from "./homeassistant.js";
 import { BaileysClient } from "./baileys-client.js";
 import { AllowlistStore } from "./allowlist.js";
-import { passesMentionRule } from "./mentions.js";
+import { mentionedJids, passesMentionRule } from "./mentions.js";
 import { RecentSenders } from "./recent-senders.js";
 import { SettingsStore } from "./settings.js";
 import { MessageLog } from "./message-log.js";
@@ -80,9 +80,7 @@ const main = async () => {
             client: key,
             from: msg?.key?.remoteJid,
             ownJids: client.ownJids,
-            mentioned: JSON.stringify(msg?.message).match(
-              /"mentionedJid":\[[^\]]*\]/g,
-            ),
+            mentioned: mentionedJids(msg),
           },
           "group message ignored: it does not mention or quote Hornero",
         );
