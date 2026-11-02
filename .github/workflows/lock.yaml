@@ -1,21 +1,43 @@
----
 name: Lock
 
-# yamllint disable-line rule:truthy
 on:
   schedule:
-    - cron: 0 0 * * 1 #Every Monday
+    - cron: '0 0 * * 1' # Every Monday
   workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
 
 jobs:
   lock:
     name: 🔒 Lock closed issues and PRs
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/lock-threads@v5
+      - name: Lock inactive issues and PRs
+        uses: actions/github-script@v7
         with:
-          github-token: ${{ github.token }}
-          issue-inactive-days: "180"
-          issue-lock-reason: ""
-          pr-inactive-days: "180"
-          pr-lock-reason: ""
+          script: |
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - 180);
+
+            // 1. Lock closed issues inactive for > 180 days
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              since: cutoffDate.toISOString(),
+              per_page: 100
+            });
+
+            for (const issue of issues) {
+              if (issue.locked) continue;
+              if (new Date(issue.updated_at) < cutoffDate) {
+                console.log(`Locking ${issue.pull_request ? 'PR' : 'Issue'} #${issue.number}`);
+                await github.rest.issues.lock({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number
+                });
+              }
+            }
