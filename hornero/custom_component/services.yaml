@@ -116,7 +116,7 @@ send_media:
         entity.
       required: false
       advanced: true
-      example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+      example: "data:text/plain;base64,SGVsbG8gZnJvbSBIb21lIEFzc2lzdGFudA=="
       selector:
         text:
           multiline: true
@@ -438,7 +438,7 @@ react:
         message_id for a message in a group that is no longer recent.
       required: false
       advanced: true
-      example: '{"id": "3EB0ABC123", "remoteJid": "120363000000000000@g.us", "participant": "391234567890@s.whatsapp.net", "fromMe": false}'
+      example: '{"id": "3EB0ABC123", "remoteJid": "120363@g.us", "participant": "391234567890@s.whatsapp.net"}'
       selector:
         object:
     emoji:
