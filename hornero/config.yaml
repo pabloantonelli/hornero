@@ -1,6 +1,6 @@
 ---
 name: Hornero
-version: "4.2.0"
+version: "4.3.0"
 slug: hornero
 description: Send and receive WhatsApp messages from Home Assistant, powered by Baileys
 url: "https://github.com/pabloantonelli/hornero"
