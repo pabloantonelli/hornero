@@ -45,3 +45,14 @@ configuration:
     description: >-
       Forza una riconnessione ogni N ore. 0 la disattiva; non serve con
       Baileys 7.
+  media_cache_hours:
+    name: Conserva i media ricevuti (ore)
+    description: >-
+      Per quanto tempo un file ricevuto si può ancora scaricare con
+      hornero.download_media. 0 non ne conserva nessuno. Imposta il
+      valore iniziale al primo avvio.
+  media_max_mb:
+    name: File più grande (MB)
+    description: >-
+      I file più grandi non vengono né scaricati né inviati. Imposta il
+      valore iniziale al primo avvio.

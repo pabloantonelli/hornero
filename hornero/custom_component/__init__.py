@@ -69,7 +69,17 @@ def _register_services(hass: HomeAssistant, coordinator: HorneroCoordinator) -> 
     api = coordinator.api
 
     def client_id(call: ServiceCall) -> str:
-        return call.data.get("clientId") or "default"
+        return call.data.get("clientId") or call.data.get("client_id") or "default"
+
+    def target(call: ServiceCall) -> dict:
+        """The message a call acts on: its id (plus chat), or its whole key."""
+        return _drop_none(
+            {
+                "chat": call.data.get("chat"),
+                "messageId": call.data.get("message_id"),
+                "key": call.data.get("key"),
+            }
+        )
 
     async def run(coro):
         try:
@@ -100,8 +110,16 @@ def _register_services(hass: HomeAssistant, coordinator: HorneroCoordinator) -> 
                 _drop_none(
                     {
                         "to": call.data["to"],
-                        "entityId": call.data["entity_id"],
+                        # One source: an entity, a file, a URL or base64 data.
+                        "entityId": call.data.get("entity_id"),
+                        "path": call.data.get("path"),
+                        "url": call.data.get("url"),
+                        "data": call.data.get("data"),
+                        "kind": call.data.get("kind"),
+                        "mimetype": call.data.get("mimetype"),
+                        "fileName": call.data.get("file_name"),
                         "caption": call.data.get("caption"),
+                        "ptt": call.data.get("ptt"),
                         "duration": call.data.get("duration"),
                         "lookback": call.data.get("lookback"),
                         "typing": call.data.get("typing"),
@@ -110,6 +128,67 @@ def _register_services(hass: HomeAssistant, coordinator: HorneroCoordinator) -> 
             )
         )
         return result or {}
+
+    async def download_media(call: ServiceCall) -> dict:
+        result = await run(
+            api.download_media(
+                client_id(call),
+                _drop_none(
+                    {
+                        "mediaId": call.data.get("media_id"),
+                        "messageId": call.data.get("message_id"),
+                        "chat": call.data.get("chat"),
+                        "saveTo": call.data.get("save_to"),
+                    }
+                ),
+            )
+        )
+        return result or {}
+
+    async def react(call: ServiceCall) -> dict:
+        payload = {**target(call), "emoji": call.data.get("emoji") or ""}
+        return await run(api.react(client_id(call), payload)) or {}
+
+    async def edit_message(call: ServiceCall) -> dict:
+        payload = {**target(call), "text": call.data["text"]}
+        return await run(api.edit_message(client_id(call), payload)) or {}
+
+    async def delete_message(call: ServiceCall) -> dict:
+        return await run(api.delete_message(client_id(call), target(call))) or {}
+
+    async def send_poll(call: ServiceCall) -> dict:
+        payload = _drop_none(
+            {
+                "to": call.data["to"],
+                "question": call.data["question"],
+                "options": list(call.data["options"]),
+                "selectableCount": call.data.get("selectable_count"),
+                "typing": call.data.get("typing"),
+            }
+        )
+        return await run(api.send_poll(client_id(call), payload)) or {}
+
+    async def send_location(call: ServiceCall) -> dict:
+        payload = _drop_none(
+            {
+                "to": call.data["to"],
+                "latitude": float(call.data["latitude"]),
+                "longitude": float(call.data["longitude"]),
+                "name": call.data.get("name"),
+                "address": call.data.get("address"),
+                "typing": call.data.get("typing"),
+            }
+        )
+        return await run(api.send_location(client_id(call), payload)) or {}
+
+    async def get_group(call: ServiceCall) -> dict:
+        return await run(api.get_group(client_id(call), call.data["group_id"])) or {}
+
+    async def list_groups(call: ServiceCall) -> dict:
+        return await run(api.list_groups(client_id(call))) or {"groups": []}
+
+    async def resolve_contact(call: ServiceCall) -> dict:
+        return await run(api.resolve_contact(client_id(call), str(call.data["contact"]))) or {}
 
     async def mark_read(call: ServiceCall) -> None:
         payload = (
@@ -163,3 +242,26 @@ def _register_services(hass: HomeAssistant, coordinator: HorneroCoordinator) -> 
     hass.services.async_register(
         DOMAIN, "send_infinity_presence_update", send_infinity_presence_update
     )
+
+    # Acting on a message also returns the resulting message id.
+    for name, handler in (
+        ("react", react),
+        ("edit_message", edit_message),
+        ("delete_message", delete_message),
+        ("send_poll", send_poll),
+        ("send_location", send_location),
+    ):
+        hass.services.async_register(
+            DOMAIN, name, handler, supports_response=SupportsResponse.OPTIONAL
+        )
+
+    # Lookups exist only for their answer.
+    for name, handler in (
+        ("download_media", download_media),
+        ("get_group", get_group),
+        ("list_groups", list_groups),
+        ("resolve_contact", resolve_contact),
+    ):
+        hass.services.async_register(
+            DOMAIN, name, handler, supports_response=SupportsResponse.ONLY
+        )

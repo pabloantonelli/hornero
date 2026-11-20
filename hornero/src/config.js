@@ -59,6 +59,8 @@ export const loadConfig = async () => {
       markRead: options.mark_read,
       typingIndicator: options.typing_indicator,
       typingMaxSeconds: options.typing_max_seconds,
+      mediaCacheHours: options.media_cache_hours,
+      mediaMaxMb: options.media_max_mb,
     },
   };
 };

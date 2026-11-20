@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from urllib.parse import quote
 
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = aiohttp.ClientTimeout(total=60)
+# Downloading or converting a big file takes longer than a plain send.
+MEDIA_TIMEOUT = aiohttp.ClientTimeout(total=300)
 
 
 class HorneroError(Exception):
@@ -31,12 +34,18 @@ class HorneroApi:
     def _headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self._token}"} if self._token else {}
 
-    async def _request(self, method: str, path: str, payload: dict | None = None) -> Any:
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        payload: dict | None = None,
+        timeout: aiohttp.ClientTimeout = TIMEOUT,
+    ) -> Any:
         url = f"{self._base}{path}"
 
         try:
             async with self._session.request(
-                method, url, json=payload, headers=self._headers(), timeout=TIMEOUT
+                method, url, json=payload, headers=self._headers(), timeout=timeout
             ) as response:
                 if response.status >= 400:
                     detail = await self._error_detail(response)
@@ -85,7 +94,42 @@ class HorneroApi:
         return await self._request("POST", f"/api/v1/clients/{client_id}/messages", payload)
 
     async def send_media(self, client_id: str, payload: dict) -> dict:
-        return await self._request("POST", f"/api/v1/clients/{client_id}/media", payload)
+        return await self._request(
+            "POST", f"/api/v1/clients/{client_id}/media", payload, MEDIA_TIMEOUT
+        )
+
+    async def download_media(self, client_id: str, payload: dict) -> dict:
+        return await self._request(
+            "POST", f"/api/v1/clients/{client_id}/media/download", payload, MEDIA_TIMEOUT
+        )
+
+    async def react(self, client_id: str, payload: dict) -> dict:
+        return await self._request("POST", f"/api/v1/clients/{client_id}/react", payload)
+
+    async def edit_message(self, client_id: str, payload: dict) -> dict:
+        return await self._request("POST", f"/api/v1/clients/{client_id}/edit", payload)
+
+    async def delete_message(self, client_id: str, payload: dict) -> dict:
+        return await self._request("POST", f"/api/v1/clients/{client_id}/delete", payload)
+
+    async def send_poll(self, client_id: str, payload: dict) -> dict:
+        return await self._request("POST", f"/api/v1/clients/{client_id}/poll", payload)
+
+    async def send_location(self, client_id: str, payload: dict) -> dict:
+        return await self._request("POST", f"/api/v1/clients/{client_id}/location", payload)
+
+    async def list_groups(self, client_id: str) -> dict:
+        return await self._request("GET", f"/api/v1/clients/{client_id}/groups")
+
+    async def get_group(self, client_id: str, group_id: str) -> dict:
+        return await self._request(
+            "GET", f"/api/v1/clients/{client_id}/groups/{quote(group_id, safe='')}"
+        )
+
+    async def resolve_contact(self, client_id: str, contact: str) -> dict:
+        return await self._request(
+            "GET", f"/api/v1/clients/{client_id}/contacts/{quote(contact, safe='')}"
+        )
 
     async def mark_read(self, client_id: str, payload: dict) -> dict:
         return await self._request("POST", f"/api/v1/clients/{client_id}/read", payload)

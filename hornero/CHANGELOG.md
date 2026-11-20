@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+### ✨ Added
+
+- **Download received media.** A `hornero_message` with a picture, audio,
+  voice note, video, document or sticker now has a `media` block — type,
+  mimetype, size, duration, whether it is a voice note, caption, file name and
+  a `media_id`. The new `hornero.download_media` action returns the file as
+  base64, or saves it under `/config/www/hornero` or `/media`. Expired links
+  are refreshed by asking the sender's phone to upload the file again. Only
+  allowed senders' media is kept, for 24 hours and up to 20 MB by default,
+  both adjustable in the Settings tab.
+- **`send_media` sends files, URLs and base64 data**, not only camera
+  snapshots, as an image, video, audio, document or sticker. `ptt: true` sends
+  audio as a voice note, converting it to Ogg/Opus with ffmpeg when needed;
+  stickers are converted to WebP.
+- **New actions:** `react`, `edit_message`, `delete_message`, `send_poll`,
+  `send_location`, and the lookups `get_group`, `list_groups` and
+  `resolve_contact` (phone number ↔ LID, with the person's name).
+- **New events:** `hornero_reaction`, `hornero_poll_vote` — with the chosen
+  options already decrypted, for polls sent from Hornero — and
+  `hornero_group_update` for members joining, leaving, promoted or demoted, and
+  for changes to a group's name, description or settings. They follow the
+  allowlist, and give each person's phone number and LID.
+- **Replies are easy to spot:** `hornero_message` has a `quoted` block with the
+  answered message's id, its author and `from_me`.
+- Every send returns `message_id`, `chat`, `timestamp` and the message `key`,
+  ready for a later edit, deletion or reaction.
+
 ### 🐛 Fixed
 
 - **Messages no longer carry WhatsApp's "old version" notice.** The add-on
@@ -14,7 +41,9 @@
 
 - Updated axios 1.21.1, express 5.3.0, pino 10.4.0, zod 4.6.7 and p-queue 10.
 - **Node 22 or newer is required** (p-queue 10). The add-on image already ships
-  Node 22.
+  Node 22, and now ffmpeg too.
+- Recent messages are kept with the session, so WhatsApp's retry requests for
+  them can be answered.
 
 ## 4.1.0
 

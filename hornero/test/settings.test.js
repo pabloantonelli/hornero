@@ -21,6 +21,14 @@ describe("sanitise", () => {
     expect(sanitise({ logLevel: "debug" }).logLevel).toBe("debug");
   });
 
+  it("respeta 0 horas de caché de media, y acota los dos valores", () => {
+    expect(sanitise({ mediaCacheHours: 0 }).mediaCacheHours).toBe(0);
+    expect(sanitise({ mediaCacheHours: "x" }).mediaCacheHours).toBe(24);
+    expect(sanitise({ mediaCacheHours: 1000 }).mediaCacheHours).toBe(168);
+    expect(sanitise({ mediaMaxMb: 0 }).mediaMaxMb).toBe(20);
+    expect(sanitise({ mediaMaxMb: 500 }).mediaMaxMb).toBe(100);
+  });
+
   it("ignora claves desconocidas", () => {
     expect(sanitise({ nope: true })).toEqual(DEFAULTS);
   });

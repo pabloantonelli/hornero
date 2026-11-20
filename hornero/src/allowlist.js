@@ -156,4 +156,14 @@ export class AllowlistStore {
   allows(msg) {
     return isAllowed(msg, this.#set, this.#groupModes);
   }
+
+  /**
+   * Whether events about a chat itself — a group renamed, a member added —
+   * may reach Home Assistant: the chat must be on the list, or the list empty.
+   */
+  allowsChat(jid) {
+    return (
+      this.#set.size === 0 || this.#set.has(jid) || this.#set.has(bareJid(jid))
+    );
+  }
 }

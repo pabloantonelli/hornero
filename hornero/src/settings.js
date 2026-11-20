@@ -16,6 +16,8 @@ export const DEFAULTS = {
   markOnline: false,
   refreshHours: 0,
   logLevel: "info",
+  mediaCacheHours: 24,
+  mediaMaxMb: 20,
 };
 
 /** Changing these needs a reconnect, so the panel says so. */
@@ -31,6 +33,12 @@ const coerce = {
   typingMaxSeconds: (v) =>
     Math.min(10, Math.max(0, Math.round(Number(v) || 0))),
   refreshHours: (v) => Math.min(48, Math.max(0, Math.round(Number(v) || 0))),
+  // 0 is meaningful here (keep nothing), so only a non-number falls back.
+  mediaCacheHours: (v) =>
+    Number.isFinite(Number(v))
+      ? Math.min(168, Math.max(0, Math.round(Number(v))))
+      : DEFAULTS.mediaCacheHours,
+  mediaMaxMb: (v) => Math.min(100, Math.max(1, Math.round(Number(v) || 20))),
   logLevel: (v) => (LOG_LEVELS.includes(v) ? v : DEFAULTS.logLevel),
 };
 

@@ -61,7 +61,7 @@
     },
     "send_media": {
       "name": "Envoyer un média",
-      "description": "Envoie une capture ou un clip d'une caméra ou d'une entité image.",
+      "description": "Envoie un fichier, une URL, des données base64, ou une capture ou un clip d'une entité caméra ou image.",
       "fields": {
         "clientId": {
           "name": "Client",
@@ -73,11 +73,39 @@
         },
         "entity_id": {
           "name": "Caméra ou image",
-          "description": "L'entité à capturer."
+          "description": "L'entité à capturer, quand aucun fichier n'est envoyé."
+        },
+        "path": {
+          "name": "Fichier",
+          "description": "Un fichier sous /config ou /media."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Un fichier à télécharger puis envoyer."
+        },
+        "data": {
+          "name": "Données base64",
+          "description": "Le fichier encodé en base64, ou une URL data:."
+        },
+        "kind": {
+          "name": "Envoyer comme",
+          "description": "image, video, audio, document ou sticker. Déduit du type si omis."
+        },
+        "mimetype": {
+          "name": "Type MIME",
+          "description": "Le type du fichier. Déduit si omis."
+        },
+        "file_name": {
+          "name": "Nom du fichier",
+          "description": "Le nom que voit le destinataire d'un document."
         },
         "caption": {
           "name": "Légende",
           "description": "Texte envoyé avec le média."
+        },
+        "ptt": {
+          "name": "Message vocal",
+          "description": "Envoie l'audio comme message vocal, converti en Ogg/Opus si besoin."
         },
         "duration": {
           "name": "Durée de la vidéo",
@@ -176,6 +204,208 @@
         "to": {
           "name": "Destinataire",
           "description": "Numéro avec indicatif pays, ou identifiant de groupe."
+        }
+      }
+    },
+    "download_media": {
+      "name": "Télécharger un média",
+      "description": "Télécharge le fichier d'un message récent, en base64 ou dans un fichier.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "media_id": {
+          "name": "ID du média",
+          "description": "Le media.media_id de l'événement hornero_message."
+        },
+        "message_id": {
+          "name": "ID du message",
+          "description": "L'id du message."
+        },
+        "chat": {
+          "name": "Discussion",
+          "description": "La discussion où se trouve le message."
+        },
+        "save_to": {
+          "name": "Enregistrer dans",
+          "description": "Un chemin sous /config/www/hornero ou /media."
+        }
+      }
+    },
+    "react": {
+      "name": "Réagir à un message",
+      "description": "Ajoute une réaction emoji, ou retire la vôtre avec un emoji vide.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "chat": {
+          "name": "Discussion",
+          "description": "La discussion où se trouve le message."
+        },
+        "message_id": {
+          "name": "ID du message",
+          "description": "L'id du message."
+        },
+        "key": {
+          "name": "Clé du message",
+          "description": "Ou la clé complète d'un événement."
+        },
+        "emoji": {
+          "name": "Emoji",
+          "description": "La réaction ; vide la retire."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Modifier un message",
+      "description": "Remplace le texte d'un message envoyé depuis ce compte.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "chat": {
+          "name": "Discussion",
+          "description": "La discussion où se trouve le message."
+        },
+        "message_id": {
+          "name": "ID du message",
+          "description": "L'id du message."
+        },
+        "key": {
+          "name": "Clé du message",
+          "description": "Ou la clé complète d'un événement."
+        },
+        "text": {
+          "name": "Nouveau texte",
+          "description": "Le texte qui remplace l'ancien."
+        }
+      }
+    },
+    "delete_message": {
+      "name": "Supprimer un message",
+      "description": "Supprime un message pour tous dans la discussion.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "chat": {
+          "name": "Discussion",
+          "description": "La discussion où se trouve le message."
+        },
+        "message_id": {
+          "name": "ID du message",
+          "description": "L'id du message."
+        },
+        "key": {
+          "name": "Clé du message",
+          "description": "Ou la clé complète d'un événement."
+        }
+      }
+    },
+    "send_poll": {
+      "name": "Envoyer un sondage",
+      "description": "Envoie un sondage ; les votes arrivent comme événements hornero_poll_vote.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "to": {
+          "name": "Destinataire",
+          "description": "Numéro avec indicatif du pays, ou ID d'un groupe."
+        },
+        "question": {
+          "name": "Question",
+          "description": "Le titre du sondage."
+        },
+        "options": {
+          "name": "Options",
+          "description": "Entre 2 et 12 réponses différentes."
+        },
+        "selectable_count": {
+          "name": "Choix par personne",
+          "description": "Combien d'options chacun peut choisir. 0 permet n'importe quel nombre."
+        },
+        "typing": {
+          "name": "Indicateur de saisie",
+          "description": "Mettre à false pour envoyer tout de suite."
+        }
+      }
+    },
+    "send_location": {
+      "name": "Envoyer une position",
+      "description": "Envoie un repère sur la carte.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "to": {
+          "name": "Destinataire",
+          "description": "Numéro avec indicatif du pays, ou ID d'un groupe."
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "En degrés."
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "En degrés."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Le nom du lieu."
+        },
+        "address": {
+          "name": "Adresse",
+          "description": "Affichée sous le nom."
+        },
+        "typing": {
+          "name": "Indicateur de saisie",
+          "description": "Mettre à false pour envoyer tout de suite."
+        }
+      }
+    },
+    "get_group": {
+      "name": "Obtenir un groupe",
+      "description": "Nom, description et membres d'un groupe.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "group_id": {
+          "name": "Groupe",
+          "description": "L'ID du groupe, terminé par @g.us."
+        }
+      }
+    },
+    "list_groups": {
+      "name": "Lister les groupes",
+      "description": "Tous les groupes dont le compte fait partie.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        }
+      }
+    },
+    "resolve_contact": {
+      "name": "Résoudre un contact",
+      "description": "Numéro et LID d'une personne, avec son nom.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Quel compte associé utiliser."
+        },
+        "contact": {
+          "name": "Contact",
+          "description": "Un numéro de téléphone ou un LID."
         }
       }
     }

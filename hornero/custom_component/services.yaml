@@ -61,11 +61,12 @@ send_message:
         boolean:
 
 send_media:
-  name: Send a camera snapshot or clip
+  name: Send a file, snapshot or clip
   description: >-
-    Captures from a camera or image entity and sends it, with no file to save
-    and no URL to expose. Without a duration it sends a still frame; with one
-    it records a clip.
+    Sends a picture, video, audio, voice note, document or sticker. The file
+    comes from exactly one source: a camera or image entity (a still frame, or
+    a clip with a duration), a file under /config or /media, a URL, or base64
+    data. Returns the message id, chat and timestamp.
   fields:
     clientId:
       name: Client
@@ -83,21 +84,92 @@ send_media:
         text:
     entity_id:
       name: Camera or image
-      description: The entity to capture from.
-      required: true
+      description: >-
+        The entity to capture from. Leave it out when sending a file, a URL or
+        base64 data.
+      required: false
       example: camera.front_door
       selector:
         entity:
           domain:
             - camera
             - image
+    path:
+      name: File
+      description: >-
+        A file under /config or /media to send, instead of an entity.
+      required: false
+      example: /media/reports/consumption.pdf
+      selector:
+        text:
+    url:
+      name: URL
+      description: A file to download and send, instead of an entity.
+      required: false
+      example: https://example.com/chart.png
+      selector:
+        text:
+    data:
+      name: Base64 data
+      description: >-
+        The file itself, base64-encoded; a data: URL works too. Instead of an
+        entity.
+      required: false
+      advanced: true
+      example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+      selector:
+        text:
+          multiline: true
+    kind:
+      name: Send as
+      description: >-
+        How WhatsApp shows it. Guessed from the mimetype when left out, so set
+        it for a document or a sticker.
+      required: false
+      example: document
+      selector:
+        select:
+          options:
+            - image
+            - video
+            - audio
+            - document
+            - sticker
+    mimetype:
+      name: Mimetype
+      description: >-
+        The file type. Guessed from the file name, the server or the data URL
+        when left out.
+      required: false
+      advanced: true
+      example: application/pdf
+      selector:
+        text:
+    file_name:
+      name: File name
+      description: The name the recipient sees for a document.
+      required: false
+      example: consumption-october.pdf
+      selector:
+        text:
     caption:
       name: Caption
-      description: Text sent along with the picture or clip.
+      description: >-
+        Text sent along with the picture, clip or document. Audio and stickers
+        carry no caption.
       required: false
       example: Someone is at the door
       selector:
         text:
+    ptt:
+      name: Voice note
+      description: >-
+        Send the audio as a voice note, converted to Ogg/Opus when it is in
+        another format (for example an MP3 from text-to-speech).
+      required: false
+      example: true
+      selector:
+        boolean:
     duration:
       name: Clip length
       description: >-
@@ -278,5 +350,349 @@ send_infinity_presence_update:
       description: The chat to show it in. Leave it out for a global presence.
       required: false
       example: 391234567890@s.whatsapp.net
+      selector:
+        text:
+
+download_media:
+  name: Download received media
+  description: >-
+    Fetches the file of a recent incoming picture, audio, voice note, video,
+    document or sticker, by the media_id in its hornero_message event. Returns
+    it as base64, or saves it under /config/www/hornero or /media and returns
+    the path. Only messages from allowed senders are kept, for the time set in
+    the add-on settings (24 hours by default).
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account received it.
+      required: true
+      example: default
+      selector:
+        text:
+    media_id:
+      name: Media ID
+      description: The media.media_id of the hornero_message event.
+      required: false
+      example: 3EB0C2D4E5F6A7B8C9D0
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: Alternatively, the message id (key.id); it is the same value.
+      required: false
+      advanced: true
+      example: 3EB0C2D4E5F6A7B8C9D0
+      selector:
+        text:
+    chat:
+      name: Chat
+      description: The chat it came from, at key.remoteJid. Optional.
+      required: false
+      advanced: true
+      example: 391234567890@s.whatsapp.net
+      selector:
+        text:
+    save_to:
+      name: Save to
+      description: >-
+        Write the file here instead of returning it as base64. A folder (ending
+        in /) gets a file named after the message. Must be under
+        /config/www/hornero or /media.
+      required: false
+      example: /media/hornero/incoming/
+      selector:
+        text:
+
+react:
+  name: React to a message
+  description: >-
+    Adds an emoji reaction to a message, or removes yours with an empty emoji.
+    Name the message by its id (with the chat, if it is not recent) or pass the
+    whole key from an event.
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account reacts.
+      required: true
+      example: default
+      selector:
+        text:
+    chat:
+      name: Chat
+      description: The chat the message is in, at key.remoteJid.
+      required: false
+      example: 391234567890@s.whatsapp.net
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The id of the message, at key.id or message_id.
+      required: false
+      example: 3EB0ABC123
+      selector:
+        text:
+    key:
+      name: Message key
+      description: >-
+        The whole key from a hornero_message event. Use it instead of chat and
+        message_id for a message in a group that is no longer recent.
+      required: false
+      advanced: true
+      example: '{"id": "3EB0ABC123", "remoteJid": "120363000000000000@g.us", "participant": "391234567890@s.whatsapp.net", "fromMe": false}'
+      selector:
+        object:
+    emoji:
+      name: Emoji
+      description: The reaction. Leave it empty to remove yours.
+      required: false
+      example: "👍"
+      selector:
+        text:
+
+edit_message:
+  name: Edit a sent message
+  description: >-
+    Replaces the text of a message this account sent. WhatsApp only allows it
+    for about 15 minutes after sending.
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account sent it.
+      required: true
+      example: default
+      selector:
+        text:
+    chat:
+      name: Chat
+      description: The chat it was sent to.
+      required: false
+      example: 391234567890@s.whatsapp.net
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The message_id returned when it was sent.
+      required: false
+      example: 3EB0ABC123
+      selector:
+        text:
+    key:
+      name: Message key
+      description: Alternatively, the key returned when it was sent.
+      required: false
+      advanced: true
+      example: '{"id": "3EB0ABC123", "remoteJid": "391234567890@s.whatsapp.net", "fromMe": true}'
+      selector:
+        object:
+    text:
+      name: New text
+      description: The text that replaces the old one.
+      required: true
+      example: The washing machine finished at 18:05
+      selector:
+        text:
+          multiline: true
+
+delete_message:
+  name: Delete a message for everyone
+  description: >-
+    Deletes a message for everyone in the chat. Works on messages this account
+    sent; in a group where it is an admin, also on other members' messages
+    (pass their key).
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account deletes it.
+      required: true
+      example: default
+      selector:
+        text:
+    chat:
+      name: Chat
+      description: The chat the message is in.
+      required: false
+      example: 391234567890@s.whatsapp.net
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The id of the message.
+      required: false
+      example: 3EB0ABC123
+      selector:
+        text:
+    key:
+      name: Message key
+      description: Alternatively, the whole key of the message.
+      required: false
+      advanced: true
+      example: '{"id": "3EB0ABC123", "remoteJid": "391234567890@s.whatsapp.net", "fromMe": true}'
+      selector:
+        object:
+
+send_poll:
+  name: Send a poll
+  description: >-
+    Sends a poll. Votes on it arrive as hornero_poll_vote events, with the
+    chosen options already readable. Returns the message id.
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account sends it.
+      required: true
+      example: default
+      selector:
+        text:
+    to:
+      name: Recipient
+      description: Phone number with country code, or a group id ending in @g.us.
+      required: true
+      example: 120363000000000000@g.us
+      selector:
+        text:
+    question:
+      name: Question
+      description: The poll's title.
+      required: true
+      example: Dinner tonight?
+      selector:
+        text:
+    options:
+      name: Options
+      description: Between 2 and 12 different answers.
+      required: true
+      example: '["Pizza", "Sushi", "Tacos"]'
+      selector:
+        object:
+    selectable_count:
+      name: Choices per person
+      description: How many options each person may pick. 0 allows any number.
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 0
+          max: 12
+    typing:
+      name: Typing indicator
+      description: Set to false to send at once.
+      required: false
+      example: false
+      selector:
+        boolean:
+
+send_location:
+  name: Send a location
+  description: Sends a pin on the map, optionally with a name and an address.
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account sends it.
+      required: true
+      example: default
+      selector:
+        text:
+    to:
+      name: Recipient
+      description: Phone number with country code, or a group id ending in @g.us.
+      required: true
+      example: 391234567890@s.whatsapp.net
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: In degrees, from -90 to 90.
+      required: true
+      example: 41.8902
+      selector:
+        number:
+          min: -90
+          max: 90
+          step: any
+    longitude:
+      name: Longitude
+      description: In degrees, from -180 to 180.
+      required: true
+      example: 12.4922
+      selector:
+        number:
+          min: -180
+          max: 180
+          step: any
+    name:
+      name: Name
+      description: The place's name, shown above the map.
+      required: false
+      example: Colosseum
+      selector:
+        text:
+    address:
+      name: Address
+      description: Shown under the name.
+      required: false
+      example: Piazza del Colosseo, Rome
+      selector:
+        text:
+    typing:
+      name: Typing indicator
+      description: Set to false to send at once.
+      required: false
+      example: false
+      selector:
+        boolean:
+
+get_group:
+  name: Get a group
+  description: >-
+    Returns a group's name, description and members, each with phone number,
+    LID and admin role.
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account is in the group.
+      required: true
+      example: default
+      selector:
+        text:
+    group_id:
+      name: Group
+      description: The group id, ending in @g.us.
+      required: true
+      example: 120363000000000000@g.us
+      selector:
+        text:
+
+list_groups:
+  name: List groups
+  description: >-
+    Returns every group the account is in, with its id, name, description and
+    size.
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account.
+      required: true
+      example: default
+      selector:
+        text:
+
+resolve_contact:
+  name: Resolve a contact
+  description: >-
+    Returns both ids of a person — the phone number and the LID WhatsApp uses
+    to hide it — and the name they go by, from either one.
+  fields:
+    clientId:
+      name: Client
+      description: Which paired account.
+      required: true
+      example: default
+      selector:
+        text:
+    contact:
+      name: Contact
+      description: A phone number with country code, or a LID ending in @lid.
+      required: true
+      example: 173478124720340@lid
       selector:
         text:

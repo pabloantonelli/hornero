@@ -10,6 +10,12 @@ import {
   captureSnapshot,
   toMessageContent,
 } from "../media.js";
+import {
+  buildContent,
+  extensionFor,
+  loadSource,
+  saveFile,
+} from "../outgoing-media.js";
 
 const messageSchema = z.object({
   to: z.union([z.string().min(1), z.number()]),
@@ -43,15 +49,117 @@ const pairingSchema = z.object({
   phone: z.union([z.string().min(1), z.number()]),
 });
 
-const mediaSchema = z.object({
-  to: z.union([z.string().min(1), z.number()]),
-  entityId: z.string().min(1),
-  caption: z.string().optional(),
-  // With a duration a clip is recorded; without one a still frame is sent.
-  duration: z.number().int().min(1).max(120).optional(),
-  lookback: z.number().int().min(0).max(60).optional(),
+const recipient = z.union([z.string().min(1), z.number()]);
+
+const KINDS = ["image", "video", "audio", "document", "sticker"];
+
+const mediaSchema = z
+  .object({
+    to: recipient,
+    // Exactly one source: a camera or image entity, a file, a URL or base64.
+    entityId: z.string().min(1).optional(),
+    path: z.string().min(1).optional(),
+    url: z.string().url().optional(),
+    data: z.string().min(1).optional(),
+    kind: z.enum(KINDS).optional(),
+    mimetype: z.string().min(1).optional(),
+    fileName: z.string().min(1).optional(),
+    caption: z.string().optional(),
+    // true sends audio as a voice note, converted to Ogg/Opus when needed.
+    ptt: z.boolean().optional(),
+    // With a duration a clip is recorded; without one a still frame is sent.
+    duration: z.number().int().min(1).max(120).optional(),
+    lookback: z.number().int().min(0).max(60).optional(),
+    typing: z.boolean().optional(),
+  })
+  .refine(
+    (v) =>
+      [v.entityId, v.path, v.url, v.data].filter((x) => x !== undefined)
+        .length === 1,
+    { message: "Give exactly one of entityId, path, url or data." },
+  );
+
+const messageKeySchema = z
+  .object({
+    id: z.string().min(1),
+    remoteJid: z.string().min(1),
+    fromMe: z.boolean().optional(),
+    participant: z.string().optional(),
+  })
+  .passthrough();
+
+/** A message is named by its id (plus the chat, if it is not recent) or its key. */
+const targetSchema = {
+  chat: recipient.optional(),
+  messageId: z.string().min(1).optional(),
+  key: messageKeySchema.optional(),
+};
+const hasTarget = (v) => Boolean(v.messageId || v.key);
+const targetMessage = { message: "Give messageId, or a whole key." };
+
+const reactSchema = z
+  .object({ ...targetSchema, emoji: z.string().optional() })
+  .refine(hasTarget, targetMessage);
+
+const editSchema = z
+  .object({ ...targetSchema, text: z.string().min(1) })
+  .refine(hasTarget, targetMessage);
+
+const deleteSchema = z.object(targetSchema).refine(hasTarget, targetMessage);
+
+const pollSchema = z
+  .object({
+    to: recipient,
+    question: z.string().min(1),
+    options: z.array(z.string().min(1)).min(2).max(12),
+    // How many options each person may pick; 0 means any number.
+    selectableCount: z.number().int().min(0).optional(),
+    typing: z.boolean().optional(),
+  })
+  .refine((v) => new Set(v.options).size === v.options.length, {
+    message: "Poll options must be different from each other.",
+  })
+  .refine(
+    (v) =>
+      v.selectableCount === undefined || v.selectableCount <= v.options.length,
+    { message: "selectableCount cannot exceed the number of options." },
+  );
+
+const locationSchema = z.object({
+  to: recipient,
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  name: z.string().optional(),
+  address: z.string().optional(),
   typing: z.boolean().optional(),
 });
+
+const downloadSchema = z
+  .object({
+    mediaId: z.string().min(1).optional(),
+    messageId: z.string().min(1).optional(),
+    chat: recipient.optional(),
+    // Write the file here instead of returning it as base64.
+    saveTo: z.string().min(1).optional(),
+  })
+  .refine((v) => v.mediaId || v.messageId, {
+    message: "Give mediaId, or messageId.",
+  });
+
+/** What every send returns: enough to edit, delete or react to it later. */
+const sentBody = (result) => {
+  const timestamp = result?.messageTimestamp;
+  const ts =
+    timestamp === undefined || timestamp === null ? null : Number(timestamp);
+  return {
+    messageId: result?.key?.id ?? null,
+    to: result?.key?.remoteJid ?? null,
+    timestamp: ts,
+    message_id: result?.key?.id ?? null,
+    chat: result?.key?.remoteJid ?? null,
+    key: result?.key ?? null,
+  };
+};
 
 const readSchema = z.object({
   // Either the whole key from a hornero_message event, or its parts.
@@ -78,6 +186,8 @@ const settingsSchema = z
     markOnline: z.boolean(),
     refreshHours: z.number().int().min(0).max(48),
     logLevel: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]),
+    mediaCacheHours: z.number().int().min(0).max(168),
+    mediaMaxMb: z.number().int().min(1).max(100),
   })
   .partial();
 
@@ -154,11 +264,7 @@ export const createApiRouter = (
       const result = await req.client.sendMessage(to, body, options, {
         typing,
       });
-      res.json({
-        messageId: result?.key?.id ?? null,
-        to: result?.key?.remoteJid ?? null,
-        timestamp: result?.messageTimestamp ?? null,
-      });
+      res.json(sentBody(result));
     }),
   );
 
@@ -170,23 +276,134 @@ export const createApiRouter = (
       const { to, entityId, caption, duration, lookback, typing } =
         req.validated;
 
-      const captured = duration
-        ? await captureRecording(entityId, { duration, lookback })
-        : await captureSnapshot(entityId);
+      if (entityId) {
+        const captured = duration
+          ? await captureRecording(entityId, { duration, lookback })
+          : await captureSnapshot(entityId);
 
-      const result = await req.client.sendMessage(
-        to,
-        toMessageContent(captured, caption),
-        undefined,
-        { typing },
+        const result = await req.client.sendMessage(
+          to,
+          toMessageContent(captured, caption),
+          undefined,
+          { typing },
+        );
+
+        return res.json({
+          ...sentBody(result),
+          mimetype: captured.mimetype,
+          bytes: captured.buffer.length,
+        });
+      }
+
+      const { path, url, data, kind, mimetype, fileName, ptt } = req.validated;
+      const file = await loadSource(
+        { path, url, data, mimetype, fileName },
+        { maxBytes: req.client.maxMediaBytes },
       );
-
-      res.json({
-        messageId: result?.key?.id ?? null,
-        to: result?.key?.remoteJid ?? null,
-        mimetype: captured.mimetype,
-        bytes: captured.buffer.length,
+      const content = await buildContent(file, { kind, caption, ptt });
+      const result = await req.client.sendMessage(to, content, undefined, {
+        typing,
       });
+
+      return res.json({
+        ...sentBody(result),
+        mimetype: content.mimetype ?? file.mimetype,
+        bytes: file.buffer.length,
+      });
+    }),
+  );
+
+  /** Downloads the file of a recent incoming message, by its media id. */
+  router.post(
+    "/clients/:clientId/media/download",
+    withClient,
+    validate(downloadSchema),
+    asyncRoute(async (req, res) => {
+      const { mediaId, messageId, saveTo } = req.validated;
+      const id = mediaId ?? messageId;
+      const { buffer, mimetype, info } = await req.client.downloadMedia(id);
+
+      const base = { content_type: mimetype, size: buffer.length, media: info };
+      if (saveTo) {
+        const name =
+          info.file_name?.replace(/[/\\]/g, "_") ||
+          `${id}.${extensionFor(mimetype)}`;
+        const written = await saveFile(saveTo, buffer, { defaultName: name });
+        return res.json({ ...base, path: written });
+      }
+      return res.json({ ...base, data_base64: buffer.toString("base64") });
+    }),
+  );
+
+  router.post(
+    "/clients/:clientId/react",
+    withClient,
+    validate(reactSchema),
+    asyncRoute(async (req, res) => {
+      res.json(sentBody(await req.client.react(req.validated)));
+    }),
+  );
+
+  router.post(
+    "/clients/:clientId/edit",
+    withClient,
+    validate(editSchema),
+    asyncRoute(async (req, res) => {
+      res.json(sentBody(await req.client.editMessage(req.validated)));
+    }),
+  );
+
+  router.post(
+    "/clients/:clientId/delete",
+    withClient,
+    validate(deleteSchema),
+    asyncRoute(async (req, res) => {
+      res.json(sentBody(await req.client.deleteMessage(req.validated)));
+    }),
+  );
+
+  router.post(
+    "/clients/:clientId/poll",
+    withClient,
+    validate(pollSchema),
+    asyncRoute(async (req, res) => {
+      const { to, typing, ...poll } = req.validated;
+      res.json(sentBody(await req.client.sendPoll(to, poll, { typing })));
+    }),
+  );
+
+  router.post(
+    "/clients/:clientId/location",
+    withClient,
+    validate(locationSchema),
+    asyncRoute(async (req, res) => {
+      const { to, typing, ...place } = req.validated;
+      res.json(sentBody(await req.client.sendLocation(to, place, { typing })));
+    }),
+  );
+
+  router.get(
+    "/clients/:clientId/groups",
+    withClient,
+    asyncRoute(async (req, res) => {
+      res.json({ groups: await req.client.listGroups() });
+    }),
+  );
+
+  router.get(
+    "/clients/:clientId/groups/:jid",
+    withClient,
+    asyncRoute(async (req, res) => {
+      res.json(await req.client.getGroup(req.params.jid));
+    }),
+  );
+
+  /** Phone number ↔ LID, with the name the person goes by. */
+  router.get(
+    "/clients/:clientId/contacts/:contact",
+    withClient,
+    asyncRoute(async (req, res) => {
+      res.json(await req.client.resolveContact(req.params.contact));
     }),
   );
 

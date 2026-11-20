@@ -1,8 +1,9 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-# Baileys 7 is ESM-only; p-queue 10 requires Node 22 or newer.
-RUN apk add --no-cache nodejs npm \
+# Baileys 7 is ESM-only; p-queue 10 requires Node 22 or newer. ffmpeg turns
+# audio into voice notes (Ogg/Opus) and images into stickers (WebP).
+RUN apk add --no-cache nodejs npm ffmpeg \
     && node -e "if (+process.versions.node.split('.')[0] < 22) { console.error('Node 22+ required, got ' + process.version); process.exit(1) }"
 
 WORKDIR /app

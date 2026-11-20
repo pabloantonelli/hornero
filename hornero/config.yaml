@@ -36,3 +36,5 @@ schema:
   log_level: list(trace|debug|info|warn|error|fatal)?
   mark_online: bool?
   refresh_hours: int(0,48)?
+  media_cache_hours: int(0,168)?
+  media_max_mb: int(1,100)?

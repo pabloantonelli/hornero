@@ -45,3 +45,14 @@ configuration:
     description: >-
       Erzwingt alle N Stunden eine neue Verbindung. 0 deaktiviert dies;
       bei Baileys 7 nicht nötig.
+  media_cache_hours:
+    name: Empfangene Medien aufbewahren (Stunden)
+    description: >-
+      Wie lange eine empfangene Datei noch mit hornero.download_media
+      geladen werden kann. 0 bewahrt nichts auf. Legt den Startwert beim
+      ersten Start fest.
+  media_max_mb:
+    name: Größte Mediendatei (MB)
+    description: >-
+      Größere Dateien werden weder geladen noch gesendet. Legt den
+      Startwert beim ersten Start fest.

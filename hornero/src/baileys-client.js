@@ -7,9 +7,13 @@ import {
   fetchLatestWaWebVersion,
   makeCacheableSignalKeyStore,
   Browsers,
+  downloadMediaMessage,
 } from "baileys";
 import PQueue from "p-queue";
 import pino from "pino";
+import { MessageStore } from "./message-store.js";
+import { findMedia, identityOf, mediaInfo, phoneOf } from "./inbound.js";
+import { decryptVote, pollCreationOf } from "./polls.js";
 
 /** Message types accepted by the `type` discriminator of incoming events. */
 export const MessageType = {
@@ -57,6 +61,24 @@ export class DisconnectedError extends Error {
   }
 }
 
+export class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "NotFoundError";
+    this.code = 404;
+  }
+}
+
+export class TooLargeError extends Error {
+  constructor(bytes, maxBytes) {
+    super(
+      `The file is ${(bytes / 1e6).toFixed(1)} MB, over the ${(maxBytes / 1e6).toFixed(0)} MB limit.`,
+    );
+    this.name = "TooLargeError";
+    this.code = 413;
+  }
+}
+
 export class MessagingError extends Error {
   constructor(statusCode, cause) {
     const label = ERROR_MESSAGES[statusCode] || "Unknown Error";
@@ -86,6 +108,30 @@ export const typingDelayMs = (text, maxMs, random = Math.random) => {
   return Math.round(typed * (0.6 + random() * 0.4));
 };
 
+/** Polls are kept far longer than other messages: votes trickle in for days. */
+const POLL_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** What a group change is about, from the fields WhatsApp sent. */
+const GROUP_CHANGE_ACTIONS = [
+  ["subject", "subject"],
+  ["desc", "description"],
+  ["announce", "announce"],
+  ["restrict", "restrict"],
+  ["memberAddMode", "member_add_mode"],
+  ["joinApprovalMode", "join_approval_mode"],
+  ["ephemeralDuration", "ephemeral"],
+];
+
+const GROUP_CHANGE_FIELDS = {
+  subject: "subject",
+  desc: "description",
+  announce: "announce",
+  restrict: "restrict",
+  memberAddMode: "member_add_mode",
+  joinApprovalMode: "join_approval_mode",
+  ephemeralDuration: "ephemeral_duration",
+};
+
 export class BaileysClient extends EventEmitter2 {
   #conn;
   #path;
@@ -109,6 +155,9 @@ export class BaileysClient extends EventEmitter2 {
   #groupNames = new Map();
   #avatarTtlMs = 60 * 60 * 1000;
   #existsTtlMs = 10 * 60 * 1000;
+  #pushNames = new Map();
+  #store;
+  #storeLoaded = false;
   #stopped = false;
   #lastQr = null;
 
@@ -144,6 +193,7 @@ export class BaileysClient extends EventEmitter2 {
     this.#maxDelayMs = maxDelayMs;
     this.#maxAttempts = maxAttempts;
     this.#settings = settings;
+    this.#store = new MessageStore({ dir: path, logger: this.#logger });
   }
 
   /** Public, read-only view of the connection state. */
@@ -168,6 +218,10 @@ export class BaileysClient extends EventEmitter2 {
   /** Opens the socket. Must be awaited by the caller so failures surface. */
   async start() {
     this.#stopped = false;
+    if (!this.#storeLoaded) {
+      this.#storeLoaded = true;
+      await this.#store.load();
+    }
     await this.#connect();
   }
 
@@ -183,6 +237,7 @@ export class BaileysClient extends EventEmitter2 {
     } catch {
       // the socket may already be closed
     }
+    await this.#store.save();
   }
 
   restart() {
@@ -211,8 +266,8 @@ export class BaileysClient extends EventEmitter2 {
       syncFullHistory: false,
       markOnlineOnConnect: !this.#offline,
       generateHighQualityLinkPreview: true,
-      // No message store is kept, so decryption retries cannot be served.
-      getMessage: async () => undefined,
+      // Recent messages are kept, so a retry for one of them can be served.
+      getMessage: async (key) => this.#store.get(key?.id)?.message ?? undefined,
     });
 
     this.#conn.ev.on("creds.update", async () => {
@@ -238,6 +293,9 @@ export class BaileysClient extends EventEmitter2 {
     this.#conn.ev.on("presence.update", (presence) =>
       this.emit("presence_update", presence),
     );
+    this.#conn.ev.on("messages.reaction", this.#onReactions);
+    this.#conn.ev.on("group-participants.update", this.#onParticipants);
+    this.#conn.ev.on("groups.update", this.#onGroupsUpdate);
   }
 
   /**
@@ -332,9 +390,213 @@ export class BaileysClient extends EventEmitter2 {
   #onMessagesUpsert = ({ messages }) => {
     for (const msg of messages) {
       if (!msg.message || msg.key?.fromMe) continue;
+      this.#recordPushName(msg);
+      if (msg.message.pollUpdateMessage) {
+        this.#onPollVote(msg).catch((err) =>
+          this.#logger.warn({ err: err.message }, "could not read a poll vote"),
+        );
+      }
       delete msg.message.messageContextInfo;
       const [type] = Object.keys(msg.message);
       this.emit("msg", { type, ...msg });
+    }
+  };
+
+  /** The name each sender goes by, under every form of their id. */
+  #recordPushName(msg) {
+    if (!msg.pushName) return;
+    const key = msg.key ?? {};
+    const ids = key.participant
+      ? [key.participant, key.participantAlt]
+      : [key.remoteJid, key.remoteJidAlt];
+    for (const jid of ids) {
+      if (jid) this.#pushNames.set(identityOf(jid).jid, msg.pushName);
+    }
+  }
+
+  /**
+   * Fills in whichever form of an identity is missing — the phone number
+   * behind a LID, or the LID of a number — from the mapping WhatsApp shares.
+   */
+  async resolveIdentity(...jids) {
+    const identity = identityOf(...jids);
+    const mapping = this.#conn?.signalRepository?.lidMapping;
+    try {
+      if (identity.lid && !identity.phone && mapping) {
+        const pn = await mapping.getPNForLID(identity.lid);
+        if (pn) Object.assign(identity, identityOf(pn, identity.lid));
+      } else if (identity.phone && !identity.lid && mapping) {
+        const lid = await mapping.getLIDForPN(identity.jid);
+        if (lid) identity.lid = identityOf(lid).lid;
+      }
+    } catch {
+      // the mapping is best-effort; the ids WhatsApp sent still stand
+    }
+    return identity;
+  }
+
+  #nameOf(identity) {
+    for (const jid of [identity.jid, identity.lid]) {
+      if (!jid) continue;
+      const name =
+        this.#pushNames.get(jid) ?? this.#contacts.get(jid)?.name ?? null;
+      if (name) return name;
+    }
+    return null;
+  }
+
+  /**
+   * A reaction to any message in a chat. Reactions this account makes are
+   * left out. `from_me` tells whether the message reacted to was ours.
+   */
+  #onReactions = async (reactions) => {
+    for (const { key, reaction } of reactions ?? []) {
+      const by = reaction?.key ?? {};
+      if (by.fromMe || !key?.id) continue;
+      try {
+        const author = await this.resolveIdentity(
+          ...(by.participant
+            ? [by.participant, by.participantAlt]
+            : [by.remoteJid, by.remoteJidAlt]),
+        );
+        this.emit("reaction", {
+          key: by,
+          chat: key.remoteJid ?? by.remoteJid,
+          author: author.jid,
+          author_phone: author.phone,
+          author_lid: author.lid,
+          push_name: this.#nameOf(author),
+          message_id: key.id,
+          emoji: reaction.text ?? "",
+          removed: !reaction.text,
+          from_me: Boolean(key.fromMe),
+        });
+      } catch (err) {
+        this.#logger.warn({ err: err.message }, "could not read a reaction");
+      }
+    }
+  };
+
+  /** A vote on a poll this account sent, decrypted with the poll's secret. */
+  async #onPollVote(msg) {
+    const update = msg.message.pollUpdateMessage;
+    const pollId = update.pollCreationMessageKey?.id;
+    const poll = this.#store.get(pollId);
+    if (!poll) {
+      this.#logger.debug(
+        { pollId },
+        "poll vote ignored: the poll was not sent from here, or has expired",
+      );
+      return;
+    }
+
+    const selected = decryptVote(msg, poll, { ownJids: this.ownJids });
+    if (selected === null) {
+      this.#logger.warn({ pollId }, "could not decrypt a poll vote");
+      return;
+    }
+
+    const key = msg.key ?? {};
+    const author = await this.resolveIdentity(
+      ...(key.participant
+        ? [key.participant, key.participantAlt]
+        : [key.remoteJid, key.remoteJidAlt]),
+    );
+    this.emit("poll_vote", {
+      key,
+      chat: key.remoteJid,
+      author: author.jid,
+      author_phone: author.phone,
+      author_lid: author.lid,
+      push_name: msg.pushName ?? this.#nameOf(author),
+      poll_message_id: pollId,
+      poll_name: pollCreationOf(poll.message)?.name ?? null,
+      selected_options: selected,
+    });
+  }
+
+  #participantsOf = async (participants) =>
+    Promise.all(
+      (participants ?? []).map(async (p) => {
+        const ids =
+          typeof p === "string" ? [p] : [p?.id, p?.phoneNumber, p?.lid];
+        const identity = await this.resolveIdentity(...ids);
+        return {
+          id: identity.jid,
+          phone: identity.phone,
+          lid: identity.lid,
+          admin: (typeof p === "object" && p?.admin) || null,
+        };
+      }),
+    );
+
+  /** Someone joined, left, was removed, promoted or demoted. */
+  #onParticipants = async ({ id, author, authorPn, participants, action }) => {
+    try {
+      const by =
+        author || authorPn
+          ? await this.resolveIdentity(author, authorPn)
+          : null;
+      this.emit("group_update", {
+        chat: id,
+        group_name: this.#groupNames.get(id) ?? null,
+        action,
+        participants: await this.#participantsOf(participants),
+        author: by?.jid ?? null,
+        author_phone: by?.phone ?? null,
+        author_lid: by?.lid ?? null,
+        changes: {},
+      });
+    } catch (err) {
+      this.#logger.warn({ err: err.message }, "could not read a group change");
+    }
+  };
+
+  /**
+   * A group's subject, description or settings changed. Fetching every group
+   * makes Baileys emit the same event with the full metadata; that is a
+   * refresh, not a change, so it is skipped.
+   */
+  #onGroupsUpdate = async (updates) => {
+    for (const update of updates ?? []) {
+      if (!update?.id || "participants" in update || "creation" in update) {
+        continue;
+      }
+      if (typeof update.subject === "string") {
+        this.#groupNames.set(update.id, update.subject);
+      }
+
+      const changes = {};
+      for (const [field, name] of Object.entries(GROUP_CHANGE_FIELDS)) {
+        if (update[field] !== undefined) changes[name] = update[field];
+      }
+      if (Object.keys(changes).length === 0) continue;
+
+      const action =
+        GROUP_CHANGE_ACTIONS.find(
+          ([field]) => update[field] !== undefined,
+        )?.[1] ?? "update";
+      try {
+        const by =
+          update.author || update.authorPn
+            ? await this.resolveIdentity(update.author, update.authorPn)
+            : null;
+        this.emit("group_update", {
+          chat: update.id,
+          group_name: this.#groupNames.get(update.id) ?? null,
+          action,
+          participants: [],
+          author: by?.jid ?? null,
+          author_phone: by?.phone ?? null,
+          author_lid: by?.lid ?? null,
+          changes,
+        });
+      } catch (err) {
+        this.#logger.warn(
+          { err: err.message },
+          "could not read a group change",
+        );
+      }
     }
   };
 
@@ -537,7 +799,6 @@ export class BaileysClient extends EventEmitter2 {
     }
   }
 
-  /** Sends a message. Returns Baileys' result, which carries the message id. */
   /**
    * Shows the typing (or recording) indicator before a message goes out, and
    * pauses for a spell that varies with the text length.
@@ -590,6 +851,7 @@ export class BaileysClient extends EventEmitter2 {
 
       try {
         const result = await this.#conn.sendMessage(id, content, options);
+        this.#rememberSent(result);
         this.emit("sent", { to: id, content, result });
         return result;
       } catch (err) {
@@ -601,6 +863,248 @@ export class BaileysClient extends EventEmitter2 {
         this.#conn.sendPresenceUpdate("paused", id).catch(() => {});
       }
     });
+  }
+
+  /** How long received messages stay downloadable; 0 keeps none. */
+  get #cacheMs() {
+    return (this.#settings?.get("mediaCacheHours") ?? 24) * 60 * 60 * 1000;
+  }
+
+  /** The largest file download_media and send_media will handle. */
+  get maxMediaBytes() {
+    return (this.#settings?.get("mediaMaxMb") ?? 20) * 1e6;
+  }
+
+  /**
+   * Keeps a received message, so its media can be downloaded and it can be
+   * reacted to or quoted later by id. Only call it for allowed senders.
+   */
+  remember(msg) {
+    this.#store.put(msg, { ttlMs: this.#cacheMs });
+  }
+
+  /** Sent messages are kept too, to edit, delete or count votes on them. */
+  #rememberSent(result) {
+    if (!result?.key?.id) return;
+    if (pollCreationOf(result.message)) {
+      this.#store.put(result, { ttlMs: POLL_TTL_MS, kind: "poll" });
+    } else {
+      this.#store.put(result, { ttlMs: this.#cacheMs });
+    }
+  }
+
+  /**
+   * The full key of a message, from the store when it is known. A key passed
+   * in wins; otherwise one is built from the chat, which is enough for
+   * messages in a direct chat, but not for someone else's in a group.
+   */
+  keyFor({ key, chat, messageId, fromMe }) {
+    if (key?.id && key?.remoteJid) return key;
+    const id = messageId ?? key?.id;
+    if (!id) throw new Error("Provide message_id, or a whole key.");
+
+    const stored = this.#store.get(id)?.key;
+    if (stored) return stored;
+
+    if (!chat) {
+      throw new NotFoundError(
+        `Message ${id} is not among the recent ones. Pass the chat too, or the whole key.`,
+      );
+    }
+    return { remoteJid: this.toJid(chat), id, fromMe: Boolean(fromMe) };
+  }
+
+  /** Reacts to a message; an empty emoji removes the reaction. */
+  react({ key, chat, messageId, emoji }) {
+    const target = this.keyFor({ key, chat, messageId });
+    return this.sendMessage(
+      target.remoteJid,
+      { react: { text: emoji ?? "", key: target } },
+      undefined,
+      { typing: false },
+    );
+  }
+
+  /** Replaces the text of a message this account sent. */
+  editMessage({ key, chat, messageId, text }) {
+    const target = this.keyFor({ key, chat, messageId, fromMe: true });
+    if (!target.fromMe) {
+      throw Object.assign(
+        new Error("Only messages sent from here can be edited."),
+        {
+          code: 400,
+        },
+      );
+    }
+    return this.sendMessage(
+      target.remoteJid,
+      { text, edit: target },
+      undefined,
+      { typing: false },
+    );
+  }
+
+  /**
+   * Deletes a message for everyone. Anyone may delete their own; a group
+   * admin may also delete other members' messages.
+   */
+  deleteMessage({ key, chat, messageId }) {
+    const target = this.keyFor({ key, chat, messageId, fromMe: true });
+    return this.sendMessage(target.remoteJid, { delete: target }, undefined, {
+      typing: false,
+    });
+  }
+
+  sendPoll(to, { question, options, selectableCount = 1 }, { typing } = {}) {
+    return this.sendMessage(
+      to,
+      { poll: { name: question, values: options, selectableCount } },
+      undefined,
+      { typing },
+    );
+  }
+
+  sendLocation(to, { latitude, longitude, name, address }, { typing } = {}) {
+    return this.sendMessage(
+      to,
+      {
+        location: {
+          degreesLatitude: latitude,
+          degreesLongitude: longitude,
+          ...(name ? { name } : {}),
+          ...(address ? { address } : {}),
+        },
+      },
+      undefined,
+      { typing },
+    );
+  }
+
+  /**
+   * Downloads the file of a recent message. WhatsApp's links expire after a
+   * while; when one has, the sender's phone is asked to upload it again.
+   */
+  async downloadMedia(mediaId) {
+    this.#assertConnected();
+    let stored = this.#store.get(mediaId);
+    if (!stored) {
+      throw new NotFoundError(
+        `No media ${mediaId} among the recent messages. It may have expired, or come from a sender that is not allowed.`,
+      );
+    }
+    const info = mediaInfo(stored);
+    if (!info) throw new NotFoundError(`Message ${mediaId} has no media.`);
+
+    const maxBytes = this.maxMediaBytes;
+    if (info.size && info.size > maxBytes) {
+      throw new TooLargeError(info.size, maxBytes);
+    }
+
+    let buffer;
+    try {
+      buffer = await downloadMediaMessage(
+        stored,
+        "buffer",
+        {},
+        {
+          logger: this.#logger,
+          reuploadRequest: async (msg) => {
+            const updated = await this.#conn.updateMediaMessage(msg);
+            stored = updated;
+            this.#store.put(updated, { ttlMs: this.#cacheMs });
+            return updated;
+          },
+        },
+      );
+    } catch (err) {
+      throw wrapError(err);
+    }
+
+    if (buffer.length > maxBytes)
+      throw new TooLargeError(buffer.length, maxBytes);
+    return {
+      buffer,
+      mimetype: info.mimetype ?? "application/octet-stream",
+      info: { ...info, size: buffer.length },
+      kind: findMedia(stored.message)?.kind ?? info.type,
+    };
+  }
+
+  /** A group's name, description and members, with both forms of each id. */
+  async getGroup(jid) {
+    this.#assertConnected();
+    const id = this.toJid(jid);
+    if (!id.endsWith("@g.us")) {
+      throw Object.assign(new Error(`${jid} is not a group id (…@g.us).`), {
+        code: 400,
+      });
+    }
+    let meta;
+    try {
+      meta = await this.#conn.groupMetadata(id);
+    } catch (err) {
+      throw wrapError(err);
+    }
+    this.#groupNames.set(meta.id, meta.subject);
+
+    const owner =
+      meta.owner || meta.ownerPn
+        ? await this.resolveIdentity(meta.owner, meta.ownerPn)
+        : null;
+    return {
+      id: meta.id,
+      name: meta.subject ?? null,
+      description: meta.desc ?? null,
+      owner: owner?.jid ?? null,
+      created: meta.creation
+        ? new Date(meta.creation * 1000).toISOString()
+        : null,
+      size: meta.size ?? meta.participants?.length ?? 0,
+      announce: Boolean(meta.announce),
+      restrict: Boolean(meta.restrict),
+      participants: await this.#participantsOf(meta.participants),
+    };
+  }
+
+  /** Every group this account is in, without the member lists. */
+  async listGroups() {
+    this.#assertConnected();
+    let groups;
+    try {
+      groups = Object.values(await this.#conn.groupFetchAllParticipating());
+    } catch (err) {
+      throw wrapError(err);
+    }
+    return groups
+      .map((group) => {
+        this.#groupNames.set(group.id, group.subject);
+        return {
+          id: group.id,
+          name: group.subject ?? null,
+          description: group.desc ?? null,
+          size: group.size ?? group.participants?.length ?? 0,
+          announce: Boolean(group.announce),
+          restrict: Boolean(group.restrict),
+        };
+      })
+      .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  }
+
+  /**
+   * Both forms of a person's id — phone number and LID — and the name they
+   * go by, from whichever form is given.
+   */
+  async resolveContact(value) {
+    this.#assertConnected();
+    const raw = String(value ?? "").trim();
+    const jid = /@/.test(raw) ? raw : this.toJid(raw);
+    const identity = await this.resolveIdentity(jid);
+    return {
+      jid: identity.jid,
+      phone: identity.phone ?? phoneOf(jid),
+      lid: identity.lid,
+      push_name: this.#nameOf(identity),
+    };
   }
 
   async sendPresenceUpdate(type, phone) {

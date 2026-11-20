@@ -61,7 +61,7 @@
     },
     "send_media": {
       "name": "Send media",
-      "description": "Send a snapshot or a recorded clip from a camera or image entity.",
+      "description": "Send a file, URL, base64 data, or a snapshot or clip from a camera or image entity.",
       "fields": {
         "clientId": {
           "name": "Client",
@@ -73,11 +73,39 @@
         },
         "entity_id": {
           "name": "Camera or image",
-          "description": "The entity to capture from."
+          "description": "The entity to capture from, when not sending a file."
+        },
+        "path": {
+          "name": "File",
+          "description": "A file under /config or /media."
+        },
+        "url": {
+          "name": "URL",
+          "description": "A file to download and send."
+        },
+        "data": {
+          "name": "Base64 data",
+          "description": "The file itself, base64-encoded, or a data: URL."
+        },
+        "kind": {
+          "name": "Send as",
+          "description": "image, video, audio, document or sticker. Guessed from the type when left out."
+        },
+        "mimetype": {
+          "name": "Mimetype",
+          "description": "The file type. Guessed when left out."
+        },
+        "file_name": {
+          "name": "File name",
+          "description": "The name the recipient sees for a document."
         },
         "caption": {
           "name": "Caption",
           "description": "Text sent along with the media."
+        },
+        "ptt": {
+          "name": "Voice note",
+          "description": "Send audio as a voice note, converting it to Ogg/Opus if needed."
         },
         "duration": {
           "name": "Video duration",
@@ -176,6 +204,208 @@
         "to": {
           "name": "Recipient",
           "description": "Phone number with country code, or a group ID."
+        }
+      }
+    },
+    "download_media": {
+      "name": "Download media",
+      "description": "Download the file of a recent incoming message, as base64 or into a file.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "media_id": {
+          "name": "Media ID",
+          "description": "The media.media_id of the hornero_message event."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The id of the message."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "The chat the message is in."
+        },
+        "save_to": {
+          "name": "Save to",
+          "description": "A path under /config/www/hornero or /media to write the file to."
+        }
+      }
+    },
+    "react": {
+      "name": "React to a message",
+      "description": "Add an emoji reaction, or remove yours with an empty one.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "The chat the message is in."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The id of the message."
+        },
+        "key": {
+          "name": "Message key",
+          "description": "Alternatively, the whole key from an event."
+        },
+        "emoji": {
+          "name": "Emoji",
+          "description": "The reaction; empty removes it."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Edit a message",
+      "description": "Replace the text of a message sent from this account.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "The chat the message is in."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The id of the message."
+        },
+        "key": {
+          "name": "Message key",
+          "description": "Alternatively, the whole key from an event."
+        },
+        "text": {
+          "name": "New text",
+          "description": "The text that replaces the old one."
+        }
+      }
+    },
+    "delete_message": {
+      "name": "Delete a message",
+      "description": "Delete a message for everyone in the chat.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "The chat the message is in."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The id of the message."
+        },
+        "key": {
+          "name": "Message key",
+          "description": "Alternatively, the whole key from an event."
+        }
+      }
+    },
+    "send_poll": {
+      "name": "Send a poll",
+      "description": "Send a poll; votes arrive as hornero_poll_vote events.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "to": {
+          "name": "Recipient",
+          "description": "Phone number with country code, or a group ID."
+        },
+        "question": {
+          "name": "Question",
+          "description": "The poll's title."
+        },
+        "options": {
+          "name": "Options",
+          "description": "Between 2 and 12 different answers."
+        },
+        "selectable_count": {
+          "name": "Choices per person",
+          "description": "How many options each person may pick. 0 allows any number."
+        },
+        "typing": {
+          "name": "Typing indicator",
+          "description": "Set to false to send immediately."
+        }
+      }
+    },
+    "send_location": {
+      "name": "Send a location",
+      "description": "Send a pin on the map.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "to": {
+          "name": "Recipient",
+          "description": "Phone number with country code, or a group ID."
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "In degrees."
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "In degrees."
+        },
+        "name": {
+          "name": "Name",
+          "description": "The place's name."
+        },
+        "address": {
+          "name": "Address",
+          "description": "Shown under the name."
+        },
+        "typing": {
+          "name": "Typing indicator",
+          "description": "Set to false to send immediately."
+        }
+      }
+    },
+    "get_group": {
+      "name": "Get a group",
+      "description": "Name, description and members of a group.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "group_id": {
+          "name": "Group",
+          "description": "The group id, ending in @g.us."
+        }
+      }
+    },
+    "list_groups": {
+      "name": "List groups",
+      "description": "Every group the account is in.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        }
+      }
+    },
+    "resolve_contact": {
+      "name": "Resolve a contact",
+      "description": "Phone number and LID of a person, with their name.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Which paired account to use."
+        },
+        "contact": {
+          "name": "Contact",
+          "description": "A phone number or a LID."
         }
       }
     }

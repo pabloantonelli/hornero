@@ -45,3 +45,14 @@ configuration:
     description: >-
       Force une reconnexion toutes les N heures. 0 la désactive ; inutile
       avec Baileys 7.
+  media_cache_hours:
+    name: Conserver les médias reçus (heures)
+    description: >-
+      Combien de temps un fichier reçu reste téléchargeable avec
+      hornero.download_media. 0 n'en conserve aucun. Sert de valeur
+      initiale au premier démarrage.
+  media_max_mb:
+    name: Fichier le plus lourd (Mo)
+    description: >-
+      Les fichiers plus lourds ne sont ni téléchargés ni envoyés. Sert
+      de valeur initiale au premier démarrage.

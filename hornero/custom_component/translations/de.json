@@ -61,7 +61,7 @@
     },
     "send_media": {
       "name": "Medien senden",
-      "description": "Sendet ein Standbild oder einen Clip einer Kamera- oder Bildentität.",
+      "description": "Sendet eine Datei, eine URL, Base64-Daten oder ein Standbild bzw. einen Clip einer Kamera- oder Bild-Entität.",
       "fields": {
         "clientId": {
           "name": "Client",
@@ -73,11 +73,39 @@
         },
         "entity_id": {
           "name": "Kamera oder Bild",
-          "description": "Die Entität, von der aufgenommen wird."
+          "description": "Die Entität für die Aufnahme, wenn keine Datei gesendet wird."
+        },
+        "path": {
+          "name": "Datei",
+          "description": "Eine Datei unter /config oder /media."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Eine Datei, die heruntergeladen und gesendet wird."
+        },
+        "data": {
+          "name": "Base64-Daten",
+          "description": "Die Datei Base64-kodiert, oder eine data:-URL."
+        },
+        "kind": {
+          "name": "Senden als",
+          "description": "image, video, audio, document oder sticker. Ohne Angabe aus dem Typ abgeleitet."
+        },
+        "mimetype": {
+          "name": "MIME-Typ",
+          "description": "Der Dateityp. Ohne Angabe abgeleitet."
+        },
+        "file_name": {
+          "name": "Dateiname",
+          "description": "Der Name, den der Empfänger bei einem Dokument sieht."
         },
         "caption": {
           "name": "Bildunterschrift",
           "description": "Text, der mit den Medien gesendet wird."
+        },
+        "ptt": {
+          "name": "Sprachnachricht",
+          "description": "Sendet Audio als Sprachnachricht und wandelt es bei Bedarf in Ogg/Opus um."
         },
         "duration": {
           "name": "Videolänge",
@@ -176,6 +204,208 @@
         "to": {
           "name": "Empfänger",
           "description": "Telefonnummer mit Ländervorwahl oder Gruppen-ID."
+        }
+      }
+    },
+    "download_media": {
+      "name": "Medien herunterladen",
+      "description": "Lädt die Datei einer kürzlich empfangenen Nachricht als Base64 oder in eine Datei.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "media_id": {
+          "name": "Medien-ID",
+          "description": "Die media.media_id des hornero_message-Ereignisses."
+        },
+        "message_id": {
+          "name": "Nachrichten-ID",
+          "description": "Die ID der Nachricht."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "Der Chat mit der Nachricht."
+        },
+        "save_to": {
+          "name": "Speichern unter",
+          "description": "Ein Pfad unter /config/www/hornero oder /media."
+        }
+      }
+    },
+    "react": {
+      "name": "Auf eine Nachricht reagieren",
+      "description": "Fügt eine Emoji-Reaktion hinzu oder entfernt die eigene mit einem leeren Emoji.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "Der Chat mit der Nachricht."
+        },
+        "message_id": {
+          "name": "Nachrichten-ID",
+          "description": "Die ID der Nachricht."
+        },
+        "key": {
+          "name": "Nachrichtenschlüssel",
+          "description": "Alternativ der ganze Schlüssel aus einem Ereignis."
+        },
+        "emoji": {
+          "name": "Emoji",
+          "description": "Die Reaktion; leer entfernt sie."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Nachricht bearbeiten",
+      "description": "Ersetzt den Text einer von diesem Konto gesendeten Nachricht.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "Der Chat mit der Nachricht."
+        },
+        "message_id": {
+          "name": "Nachrichten-ID",
+          "description": "Die ID der Nachricht."
+        },
+        "key": {
+          "name": "Nachrichtenschlüssel",
+          "description": "Alternativ der ganze Schlüssel aus einem Ereignis."
+        },
+        "text": {
+          "name": "Neuer Text",
+          "description": "Der Text, der den alten ersetzt."
+        }
+      }
+    },
+    "delete_message": {
+      "name": "Nachricht löschen",
+      "description": "Löscht eine Nachricht für alle im Chat.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "chat": {
+          "name": "Chat",
+          "description": "Der Chat mit der Nachricht."
+        },
+        "message_id": {
+          "name": "Nachrichten-ID",
+          "description": "Die ID der Nachricht."
+        },
+        "key": {
+          "name": "Nachrichtenschlüssel",
+          "description": "Alternativ der ganze Schlüssel aus einem Ereignis."
+        }
+      }
+    },
+    "send_poll": {
+      "name": "Umfrage senden",
+      "description": "Sendet eine Umfrage; Stimmen kommen als hornero_poll_vote-Ereignisse.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "to": {
+          "name": "Empfänger",
+          "description": "Telefonnummer mit Ländervorwahl oder eine Gruppen-ID."
+        },
+        "question": {
+          "name": "Frage",
+          "description": "Der Titel der Umfrage."
+        },
+        "options": {
+          "name": "Optionen",
+          "description": "Zwischen 2 und 12 verschiedene Antworten."
+        },
+        "selectable_count": {
+          "name": "Auswahl pro Person",
+          "description": "Wie viele Optionen jede Person wählen darf. 0 erlaubt beliebig viele."
+        },
+        "typing": {
+          "name": "Tippanzeige",
+          "description": "Auf false setzen, um sofort zu senden."
+        }
+      }
+    },
+    "send_location": {
+      "name": "Standort senden",
+      "description": "Sendet eine Markierung auf der Karte.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "to": {
+          "name": "Empfänger",
+          "description": "Telefonnummer mit Ländervorwahl oder eine Gruppen-ID."
+        },
+        "latitude": {
+          "name": "Breitengrad",
+          "description": "In Grad."
+        },
+        "longitude": {
+          "name": "Längengrad",
+          "description": "In Grad."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Der Name des Ortes."
+        },
+        "address": {
+          "name": "Adresse",
+          "description": "Wird unter dem Namen angezeigt."
+        },
+        "typing": {
+          "name": "Tippanzeige",
+          "description": "Auf false setzen, um sofort zu senden."
+        }
+      }
+    },
+    "get_group": {
+      "name": "Gruppe abrufen",
+      "description": "Name, Beschreibung und Mitglieder einer Gruppe.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "group_id": {
+          "name": "Gruppe",
+          "description": "Die Gruppen-ID, endet auf @g.us."
+        }
+      }
+    },
+    "list_groups": {
+      "name": "Gruppen auflisten",
+      "description": "Alle Gruppen, in denen das Konto ist.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        }
+      }
+    },
+    "resolve_contact": {
+      "name": "Kontakt auflösen",
+      "description": "Telefonnummer und LID einer Person, mit ihrem Namen.",
+      "fields": {
+        "clientId": {
+          "name": "Client",
+          "description": "Welches gekoppelte Konto verwendet wird."
+        },
+        "contact": {
+          "name": "Kontakt",
+          "description": "Eine Telefonnummer oder eine LID."
         }
       }
     }

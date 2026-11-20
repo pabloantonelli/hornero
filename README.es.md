@@ -21,11 +21,19 @@ algo que vive en tu casa y lleva mensajes.
 
 ## Qué hace
 
-- **Envía** texto, imágenes, audio, video, documentos, ubicaciones y reacciones
-  a contactos y grupos.
+- **Envía** texto, imágenes, audio, notas de voz, video, documentos,
+  stickers, ubicaciones, encuestas y reacciones a contactos y grupos —desde
+  una cámara, un archivo, una URL o datos en base64— y edita o borra lo que
+  mandó.
 - **Recibe** mensajes como eventos de Home Assistant, con una lista de
   remitentes permitidos para que sólo quienes vos elijas disparen
-  automatizaciones.
+  automatizaciones. Las fotos, notas de voz y documentos se pueden descargar
+  después, para transcribirlos o leerlos.
+- **Reacciones, votos de encuestas y cambios de grupos** llegan como eventos
+  propios, con las opciones votadas ya descifradas y el teléfono de cada
+  persona resuelto a partir de su LID.
+- **Consultas** de grupos y sus miembros, y del número que hay detrás de un
+  LID.
 - **Capturas y clips de cámara** directo desde cualquier entidad `camera` o
   `image`, incluyendo los segundos grabados _antes_ del disparo.
 - **Entidades**, no sólo servicios: sensores de conexión, el QR de vinculación
@@ -184,6 +192,46 @@ data:
 Grabar requiere una cámara con el componente `stream`; las de imagen fija sólo
 pueden mandar capturas, y `lookback` necesita el stream precargado.
 
+## Enviar archivos, notas de voz y encuestas
+
+`send_media` también acepta un archivo dentro de `/config` o `/media`, una URL
+o datos en base64 en lugar de una entidad. Con `ptt: true` el audio sale como
+nota de voz, convertido antes a Ogg/Opus si hace falta: sirve para el MP3 de
+un text-to-speech.
+
+```yaml
+action: hornero.send_media
+data:
+  clientId: default
+  to: "34600000000"
+  path: /media/tts/respuesta.mp3
+  ptt: true
+```
+
+Cada envío devuelve `message_id`, `chat` y `timestamp`; guardalos con
+`response_variable` para editar, borrar o reaccionar al mensaje después. Las
+encuestas, ubicaciones, reacciones, ediciones y borrados tienen sus propias
+acciones: `send_poll`, `send_location`, `react`, `edit_message` y
+`delete_message`.
+
+## Descargar la media recibida
+
+Un `hornero_message` con una foto, audio, video, documento o sticker trae un
+bloque `media` con el tipo, el tamaño, la duración, el epígrafe y un
+`media_id`. El archivo no viaja en el evento; se baja cuando hace falta:
+
+```yaml
+action: hornero.download_media
+data:
+  clientId: default
+  media_id: "{{ trigger.event.data.media.media_id }}"
+response_variable: archivo # {content_type, size, data_base64}
+```
+
+Con `save_to: /media/hornero/` devuelve un `path` en lugar del base64. Los
+mensajes de remitentes permitidos se pueden bajar durante 24 horas, y hasta
+20 MB; los dos valores están en la pestaña **Ajustes**.
+
 ## Node-RED
 
 No hace falta token ni nodo HTTP: Hornero registra servicios y eventos
@@ -192,6 +240,7 @@ normales de Home Assistant, que Node-RED alcanza por su conexión websocket.
 - **Para enviar**: un nodo _call service_, dominio `hornero`, servicio
   `send_message` o `send_media`.
 - **Para recibir**: un nodo _events: all_ escuchando `hornero_message`,
+  `hornero_reaction`, `hornero_poll_vote`, `hornero_group_update`,
   `hornero_message_ack` o `hornero_presence`.
 
 Hay subflows listos en
@@ -212,6 +261,8 @@ typing_indicator: true # "escribiendo…" y una pausa antes de enviar
 typing_max_seconds: 3
 mark_online: false # cuidado: corta las notificaciones a tu teléfono
 refresh_hours: 0
+media_cache_hours: 24 # cuánto se puede bajar la media recibida; 0 no guarda nada
+media_max_mb: 20 # el archivo más grande que se baja o se envía
 ```
 
 Esto siembra los ajustes en una instalación nueva. Después manda la pestaña
@@ -224,11 +275,18 @@ entidades en su siguiente sondeo, en unos quince segundos.
 
 ## Eventos
 
-| Evento                | Cuándo se dispara                            |
-| --------------------- | -------------------------------------------- |
-| `hornero_message`     | Llega un mensaje de un remitente permitido   |
-| `hornero_message_ack` | Un mensaje que enviaste se entregó o se leyó |
-| `hornero_presence`    | Un contacto suscrito cambia de presencia     |
+| Evento                 | Cuándo se dispara                                             |
+| ---------------------- | ------------------------------------------------------------- |
+| `hornero_message`      | Llega un mensaje de un remitente permitido                    |
+| `hornero_reaction`     | Un remitente permitido reacciona a un mensaje                 |
+| `hornero_poll_vote`    | Un remitente permitido vota en una encuesta enviada acá       |
+| `hornero_group_update` | Cambian los miembros o la configuración de un grupo permitido |
+| `hornero_message_ack`  | Un mensaje que enviaste se entregó o se leyó                  |
+| `hornero_presence`     | Un contacto suscrito cambia de presencia                      |
+
+Cuando un mensaje responde a otro, `hornero_message` trae un bloque `quoted`
+con el `message_id` del original, su autor y `from_me`, que dice si era uno
+tuyo. Los payloads están en [DOCS.md](hornero/DOCS.md#events).
 
 ## API HTTP
 

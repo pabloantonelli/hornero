@@ -996,6 +996,24 @@
         <dd data-i18n="s_pres">Show typing or online</dd>
         <dt><code>hornero.send_infinity_presence_update</code></dt>
         <dd data-i18n="s_pres_inf">Keep showing it</dd>
+        <dt><code>hornero.download_media</code></dt>
+        <dd data-i18n="s_download">Download received media</dd>
+        <dt><code>hornero.react</code></dt>
+        <dd data-i18n="s_react">React to a message</dd>
+        <dt><code>hornero.edit_message</code></dt>
+        <dd data-i18n="s_edit">Edit a message you sent</dd>
+        <dt><code>hornero.delete_message</code></dt>
+        <dd data-i18n="s_delete">Delete a message for everyone</dd>
+        <dt><code>hornero.send_poll</code></dt>
+        <dd data-i18n="s_poll">Send a poll</dd>
+        <dt><code>hornero.send_location</code></dt>
+        <dd data-i18n="s_location">Send a location</dd>
+        <dt><code>hornero.get_group</code></dt>
+        <dd data-i18n="s_group">A group and its members</dd>
+        <dt><code>hornero.list_groups</code></dt>
+        <dd data-i18n="s_groups">Every group the account is in</dd>
+        <dt><code>hornero.resolve_contact</code></dt>
+        <dd data-i18n="s_resolve">Phone number ↔ LID of a contact</dd>
       </dl>
       <p class="msg" data-i18n="h_svc_hint">
         Use the Snippet builder tab to fill these in and copy them, rather than
@@ -1030,6 +1048,12 @@
         <dd data-i18n="e_ack">A sent message was delivered or read</dd>
         <dt><code>hornero_presence</code></dt>
         <dd data-i18n="e_pres">A contact came online or is typing</dd>
+        <dt><code>hornero_reaction</code></dt>
+        <dd data-i18n="e_reaction">Someone reacted to a message</dd>
+        <dt><code>hornero_poll_vote</code></dt>
+        <dd data-i18n="e_vote">Someone voted on a poll</dd>
+        <dt><code>hornero_group_update</code></dt>
+        <dd data-i18n="e_group">A group's members or settings changed</dd>
       </dl>
 
       <h3 data-i18n="h_addressing">Addressing</h3>
@@ -1193,6 +1217,11 @@
       set_refreshHours: "Periodic reconnect (hours)",
       set_refreshHours_hint:
         "0 disables it. Not needed on Baileys 7; only for working around a stability problem.",
+      set_mediaCacheHours: "Keep received media (hours)",
+      set_mediaCacheHours_hint:
+        "How long a received file can still be downloaded with download_media. 0 keeps none.",
+      set_mediaMaxMb: "Largest media file (MB)",
+      set_mediaMaxMb_hint: "Bigger files are neither downloaded nor sent.",
       set_logLevel: "Log level",
       set_logLevel_hint:
         "Raise it to debug or trace when diagnosing a problem.",
@@ -1247,12 +1276,24 @@
       e_ack: "A sent message was delivered or read",
       e_pres: "A contact came online or is typing",
       s_text: "Text, images, audio, locations",
-      s_media: "Snapshot or clip from a camera",
+      s_media: "A file, URL, snapshot or clip",
       s_read: "Mark a received message as read",
       s_status: "Profile status text",
       s_sub: "Follow a contact's presence",
       s_pres: "Show typing or online",
       s_pres_inf: "Keep showing it",
+      s_download: "Download received media",
+      s_react: "React to a message",
+      s_edit: "Edit a message you sent",
+      s_delete: "Delete a message for everyone",
+      s_poll: "Send a poll",
+      s_location: "Send a location",
+      s_group: "A group and its members",
+      s_groups: "Every group the account is in",
+      s_resolve: "Phone number ↔ LID of a contact",
+      e_reaction: "Someone reacted to a message",
+      e_vote: "Someone voted on a poll",
+      e_group: "A group's members or settings changed",
       ent_hint:
         "Each paired client is a device in Home Assistant, with a connection sensor, the pairing code as an image, and buttons. The settings below also appear there as switches.",
       tab_messages: "Messages",
@@ -1391,6 +1432,11 @@
       set_refreshHours: "Reconexión periódica (horas)",
       set_refreshHours_hint:
         "0 la desactiva. No hace falta en Baileys 7; solo para sortear un problema de estabilidad.",
+      set_mediaCacheHours: "Guardar media recibida (horas)",
+      set_mediaCacheHours_hint:
+        "Cuánto tiempo se puede bajar un archivo recibido con download_media. 0 no guarda nada.",
+      set_mediaMaxMb: "Archivo más grande (MB)",
+      set_mediaMaxMb_hint: "Los archivos más pesados no se bajan ni se envían.",
       set_logLevel: "Nivel de registro",
       set_logLevel_hint:
         "Subilo a debug o trace para diagnosticar un problema.",
@@ -1445,12 +1491,24 @@
       e_ack: "Un mensaje enviado se entregó o se leyó",
       e_pres: "Un contacto se conectó o está escribiendo",
       s_text: "Texto, imágenes, audio, ubicaciones",
-      s_media: "Captura o clip de una cámara",
+      s_media: "Un archivo, URL, captura o clip",
       s_read: "Marcar un mensaje recibido como leído",
       s_status: "Texto de estado del perfil",
       s_sub: "Seguir la presencia de un contacto",
       s_pres: "Mostrar escribiendo o en línea",
       s_pres_inf: "Mantenerlo mostrado",
+      s_download: "Descargar la media recibida",
+      s_react: "Reaccionar a un mensaje",
+      s_edit: "Editar un mensaje enviado",
+      s_delete: "Borrar un mensaje para todos",
+      s_poll: "Enviar una encuesta",
+      s_location: "Enviar una ubicación",
+      s_group: "Un grupo y sus miembros",
+      s_groups: "Todos los grupos de la cuenta",
+      s_resolve: "Número ↔ LID de un contacto",
+      e_reaction: "Alguien reaccionó a un mensaje",
+      e_vote: "Alguien votó en una encuesta",
+      e_group: "Cambiaron los miembros o la configuración de un grupo",
       ent_hint:
         "Cada cliente vinculado es un dispositivo en Home Assistant, con un sensor de conexión, el código de vinculación como imagen y botones. Los ajustes de abajo también aparecen ahí como interruptores.",
       tab_messages: "Mensajes",
@@ -1590,6 +1648,11 @@
       set_refreshHours: "Reconexão periódica (horas)",
       set_refreshHours_hint:
         "0 desativa. Não é preciso no Baileys 7; só para contornar um problema de estabilidade.",
+      set_mediaCacheHours: "Guardar mídia recebida (horas)",
+      set_mediaCacheHours_hint:
+        "Por quanto tempo um arquivo recebido ainda pode ser baixado com download_media. 0 não guarda nada.",
+      set_mediaMaxMb: "Maior arquivo (MB)",
+      set_mediaMaxMb_hint: "Arquivos maiores não são baixados nem enviados.",
       set_logLevel: "Nível de registo",
       set_logLevel_hint:
         "Suba para debug ou trace ao diagnosticar um problema.",
@@ -1643,12 +1706,24 @@
       e_ack: "Uma mensagem enviada foi entregue ou lida",
       e_pres: "Um contato ficou online ou está digitando",
       s_text: "Texto, imagens, áudio, localizações",
-      s_media: "Foto ou clipe de uma câmera",
+      s_media: "Um arquivo, URL, captura ou clipe",
       s_read: "Marcar uma mensagem recebida como lida",
       s_status: "Texto de status do perfil",
       s_sub: "Acompanhar a presença de um contato",
       s_pres: "Mostrar digitando ou online",
       s_pres_inf: "Manter exibindo",
+      s_download: "Baixar a mídia recebida",
+      s_react: "Reagir a uma mensagem",
+      s_edit: "Editar uma mensagem enviada",
+      s_delete: "Apagar uma mensagem para todos",
+      s_poll: "Enviar uma enquete",
+      s_location: "Enviar uma localização",
+      s_group: "Um grupo e seus membros",
+      s_groups: "Todos os grupos da conta",
+      s_resolve: "Número ↔ LID de um contato",
+      e_reaction: "Alguém reagiu a uma mensagem",
+      e_vote: "Alguém votou em uma enquete",
+      e_group: "Mudaram os membros ou as configurações de um grupo",
       ent_hint:
         "Cada cliente pareado é um dispositivo no Home Assistant, com um sensor de conexão, o código de pareamento como imagem e botões. Os ajustes abaixo também aparecem lá como interruptores.",
       tab_messages: "Mensagens",
@@ -1788,6 +1863,12 @@
       set_refreshHours: "Regelmäßiger Neuverbindungsintervall (Stunden)",
       set_refreshHours_hint:
         "0 schaltet es ab. Bei Baileys 7 unnötig; nur als Notbehelf bei Stabilitätsproblemen.",
+      set_mediaCacheHours: "Empfangene Medien aufbewahren (Stunden)",
+      set_mediaCacheHours_hint:
+        "Wie lange eine empfangene Datei noch mit download_media geladen werden kann. 0 bewahrt nichts auf.",
+      set_mediaMaxMb: "Größte Mediendatei (MB)",
+      set_mediaMaxMb_hint:
+        "Größere Dateien werden weder geladen noch gesendet.",
       set_logLevel: "Protokollstufe",
       set_logLevel_hint: "Für die Fehlersuche auf debug oder trace anheben.",
       recent: "Letzte Absender",
@@ -1841,12 +1922,24 @@
       e_ack: "Eine gesendete Nachricht wurde zugestellt oder gelesen",
       e_pres: "Ein Kontakt ist online oder schreibt",
       s_text: "Text, Bilder, Audio, Standorte",
-      s_media: "Standbild oder Clip einer Kamera",
+      s_media: "Datei, URL, Standbild oder Clip",
       s_read: "Empfangene Nachricht als gelesen markieren",
       s_status: "Profilstatustext",
       s_sub: "Präsenz eines Kontakts verfolgen",
       s_pres: "Als schreibend oder online anzeigen",
       s_pres_inf: "Dauerhaft anzeigen",
+      s_download: "Empfangene Medien herunterladen",
+      s_react: "Auf eine Nachricht reagieren",
+      s_edit: "Eine gesendete Nachricht bearbeiten",
+      s_delete: "Eine Nachricht für alle löschen",
+      s_poll: "Eine Umfrage senden",
+      s_location: "Einen Standort senden",
+      s_group: "Eine Gruppe und ihre Mitglieder",
+      s_groups: "Alle Gruppen des Kontos",
+      s_resolve: "Telefonnummer ↔ LID eines Kontakts",
+      e_reaction: "Jemand hat auf eine Nachricht reagiert",
+      e_vote: "Jemand hat in einer Umfrage abgestimmt",
+      e_group: "Mitglieder oder Einstellungen einer Gruppe haben sich geändert",
       ent_hint:
         "Jeder gekoppelte Client ist ein Gerät in Home Assistant, mit Verbindungssensor, dem Kopplungscode als Bild und Schaltflächen. Die Einstellungen unten erscheinen dort ebenfalls als Schalter.",
       tab_messages: "Nachrichten",
@@ -1986,6 +2079,12 @@
       set_refreshHours: "Reconnexion périodique (heures)",
       set_refreshHours_hint:
         "0 la désactive. Inutile avec Baileys 7 ; seulement pour contourner un problème de stabilité.",
+      set_mediaCacheHours: "Conserver les médias reçus (heures)",
+      set_mediaCacheHours_hint:
+        "Combien de temps un fichier reçu reste téléchargeable avec download_media. 0 n'en conserve aucun.",
+      set_mediaMaxMb: "Fichier le plus lourd (Mo)",
+      set_mediaMaxMb_hint:
+        "Les fichiers plus lourds ne sont ni téléchargés ni envoyés.",
       set_logLevel: "Niveau de journalisation",
       set_logLevel_hint:
         "Passez-le à debug ou trace pour diagnostiquer un problème.",
@@ -2042,12 +2141,24 @@
       e_ack: "Un message envoyé a été remis ou lu",
       e_pres: "Un contact est en ligne ou écrit",
       s_text: "Texte, images, audio, positions",
-      s_media: "Capture ou clip d'une caméra",
+      s_media: "Un fichier, une URL, une capture ou un clip",
       s_read: "Marquer un message reçu comme lu",
       s_status: "Texte de statut du profil",
       s_sub: "Suivre la présence d'un contact",
       s_pres: "Afficher en train d'écrire ou en ligne",
       s_pres_inf: "Le maintenir affiché",
+      s_download: "Télécharger un média reçu",
+      s_react: "Réagir à un message",
+      s_edit: "Modifier un message envoyé",
+      s_delete: "Supprimer un message pour tous",
+      s_poll: "Envoyer un sondage",
+      s_location: "Envoyer une position",
+      s_group: "Un groupe et ses membres",
+      s_groups: "Tous les groupes du compte",
+      s_resolve: "Numéro ↔ LID d'un contact",
+      e_reaction: "Quelqu'un a réagi à un message",
+      e_vote: "Quelqu'un a voté à un sondage",
+      e_group: "Les membres ou réglages d'un groupe ont changé",
       ent_hint:
         "Chaque client appairé est un appareil dans Home Assistant, avec un capteur de connexion, le code d'appairage en image et des boutons. Les réglages ci-dessous y apparaissent aussi sous forme d'interrupteurs.",
       tab_messages: "Messages",
@@ -2187,6 +2298,12 @@
       set_refreshHours: "Riconnessione periodica (ore)",
       set_refreshHours_hint:
         "0 la disattiva. Non serve con Baileys 7; solo per aggirare un problema di stabilità.",
+      set_mediaCacheHours: "Conserva i media ricevuti (ore)",
+      set_mediaCacheHours_hint:
+        "Per quanto tempo un file ricevuto si può ancora scaricare con download_media. 0 non ne conserva nessuno.",
+      set_mediaMaxMb: "File più grande (MB)",
+      set_mediaMaxMb_hint:
+        "I file più grandi non vengono né scaricati né inviati.",
       set_logLevel: "Livello di log",
       set_logLevel_hint:
         "Alzalo a debug o trace per diagnosticare un problema.",
@@ -2241,12 +2358,24 @@
       e_ack: "Un messaggio inviato è stato consegnato o letto",
       e_pres: "Un contatto è online o sta scrivendo",
       s_text: "Testo, immagini, audio, posizioni",
-      s_media: "Scatto o clip da una telecamera",
+      s_media: "Un file, URL, istantanea o clip",
       s_read: "Segnare come letto un messaggio ricevuto",
       s_status: "Testo di stato del profilo",
       s_sub: "Seguire la presenza di un contatto",
       s_pres: "Mostrare come online o che scrive",
       s_pres_inf: "Mantenerlo visibile",
+      s_download: "Scarica i media ricevuti",
+      s_react: "Reagisci a un messaggio",
+      s_edit: "Modifica un messaggio inviato",
+      s_delete: "Elimina un messaggio per tutti",
+      s_poll: "Invia un sondaggio",
+      s_location: "Invia una posizione",
+      s_group: "Un gruppo e i suoi membri",
+      s_groups: "Tutti i gruppi dell'account",
+      s_resolve: "Numero ↔ LID di un contatto",
+      e_reaction: "Qualcuno ha reagito a un messaggio",
+      e_vote: "Qualcuno ha votato a un sondaggio",
+      e_group: "Sono cambiati i membri o le impostazioni di un gruppo",
       ent_hint:
         "Ogni client associato è un dispositivo in Home Assistant, con un sensore di connessione, il codice di associazione come immagine e pulsanti. Le impostazioni qui sotto compaiono lì anche come interruttori.",
       tab_messages: "Messaggi",
@@ -3458,6 +3587,8 @@
     ["typingMaxSeconds", "number", 0, 10],
     ["markOnline", "boolean"],
     ["refreshHours", "number", 0, 48],
+    ["mediaCacheHours", "number", 0, 168],
+    ["mediaMaxMb", "number", 1, 100],
     [
       "logLevel",
       "select",

@@ -7,10 +7,10 @@ import { loadConfig, VERSION } from "./config.js";
 import { HomeAssistant } from "./homeassistant.js";
 import { BaileysClient } from "./baileys-client.js";
 import { AllowlistStore } from "./allowlist.js";
-import { mentionedJids, passesMentionRule } from "./mentions.js";
 import { RecentSenders } from "./recent-senders.js";
 import { SettingsStore } from "./settings.js";
 import { MessageLog } from "./message-log.js";
+import { forwardEvents } from "./events.js";
 
 const main = async () => {
   const config = await loadConfig();
@@ -57,63 +57,16 @@ const main = async () => {
     client.on("pair", (info) =>
       logger.info({ client: key, ...info }, "paired"),
     );
-    client.on("msg", (msg) => {
-      const allowed = allowlist.allows(msg);
-      recentSenders.record(msg, allowed);
-
-      if (!allowed) {
-        logger.debug(
-          { client: key, from: msg?.key?.remoteJid },
-          "message ignored: sender is not on the allowlist",
-        );
-        return;
-      }
-
-      if (
-        !passesMentionRule(msg, {
-          ownJids: client.ownJids,
-          enabled: settings.get("groupsRequireMention"),
-        })
-      ) {
-        logger.debug(
-          {
-            client: key,
-            from: msg?.key?.remoteJid,
-            ownJids: client.ownJids,
-            mentioned: mentionedJids(msg),
-          },
-          "group message ignored: it does not mention or quote Hornero",
-        );
-        return;
-      }
-
-      if (settings.get("markRead")) {
-        client
-          .markRead(msg.key)
-          .catch((err) =>
-            logger.debug(
-              { client: key, err: err.message },
-              "could not mark the message as read",
-            ),
-          );
-      }
-
-      messageLog.recordReceived({ clientId: key, msg });
-      ha.fireEvent("hornero_message", { clientId: key, ...msg });
+    forwardEvents({
+      client,
+      clientId: key,
+      ha,
+      allowlist,
+      recentSenders,
+      settings,
+      messageLog,
+      logger,
     });
-    client.on("presence_update", (presence) =>
-      ha.fireEvent("hornero_presence", { clientId: key, ...presence }),
-    );
-    client.on("ack", (ack) => {
-      messageLog.markStatus(ack.messageId, ack.status);
-      ha.fireEvent("hornero_message_ack", { clientId: key, ...ack });
-    });
-    client.on("sent", (event) =>
-      messageLog.recordSent({ clientId: key, ...event }),
-    );
-    client.on("send_failed", (event) =>
-      messageLog.recordFailure({ clientId: key, ...event }),
-    );
     client.on("disconnected", (code) =>
       logger.warn({ client: key, code }, "disconnected, reconnecting"),
     );

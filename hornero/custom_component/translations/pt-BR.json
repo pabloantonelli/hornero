@@ -61,7 +61,7 @@
     },
     "send_media": {
       "name": "Enviar mídia",
-      "description": "Envia uma foto ou um clipe de uma câmera ou entidade de imagem.",
+      "description": "Envie um arquivo, uma URL, dados em base64, ou uma captura ou clipe de uma entidade de câmera ou imagem.",
       "fields": {
         "clientId": {
           "name": "Cliente",
@@ -73,11 +73,39 @@
         },
         "entity_id": {
           "name": "Câmera ou imagem",
-          "description": "A entidade de onde capturar."
+          "description": "A entidade a capturar, quando não se envia um arquivo."
+        },
+        "path": {
+          "name": "Arquivo",
+          "description": "Um arquivo dentro de /config ou /media."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Um arquivo para baixar e enviar."
+        },
+        "data": {
+          "name": "Dados em base64",
+          "description": "O arquivo em base64, ou uma URL data:."
+        },
+        "kind": {
+          "name": "Enviar como",
+          "description": "image, video, audio, document ou sticker. Deduzido do tipo se omitido."
+        },
+        "mimetype": {
+          "name": "Mimetype",
+          "description": "O tipo do arquivo. Deduzido se omitido."
+        },
+        "file_name": {
+          "name": "Nome do arquivo",
+          "description": "O nome que o destinatário vê em um documento."
         },
         "caption": {
           "name": "Legenda",
           "description": "Texto enviado junto com a mídia."
+        },
+        "ptt": {
+          "name": "Mensagem de voz",
+          "description": "Envia o áudio como mensagem de voz, convertendo para Ogg/Opus se preciso."
         },
         "duration": {
           "name": "Duração do vídeo",
@@ -176,6 +204,208 @@
         "to": {
           "name": "Destinatário",
           "description": "Número com código do país, ou ID de grupo."
+        }
+      }
+    },
+    "download_media": {
+      "name": "Baixar mídia",
+      "description": "Baixa o arquivo de uma mensagem recente, em base64 ou para um arquivo.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "media_id": {
+          "name": "ID da mídia",
+          "description": "O media.media_id do evento hornero_message."
+        },
+        "message_id": {
+          "name": "ID da mensagem",
+          "description": "O id da mensagem."
+        },
+        "chat": {
+          "name": "Conversa",
+          "description": "A conversa em que está a mensagem."
+        },
+        "save_to": {
+          "name": "Salvar em",
+          "description": "Um caminho dentro de /config/www/hornero ou /media."
+        }
+      }
+    },
+    "react": {
+      "name": "Reagir a uma mensagem",
+      "description": "Adiciona uma reação com emoji, ou remove a sua com um vazio.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "chat": {
+          "name": "Conversa",
+          "description": "A conversa em que está a mensagem."
+        },
+        "message_id": {
+          "name": "ID da mensagem",
+          "description": "O id da mensagem."
+        },
+        "key": {
+          "name": "Chave da mensagem",
+          "description": "Ou a chave completa de um evento."
+        },
+        "emoji": {
+          "name": "Emoji",
+          "description": "A reação; vazio a remove."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Editar uma mensagem",
+      "description": "Substitui o texto de uma mensagem enviada desta conta.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "chat": {
+          "name": "Conversa",
+          "description": "A conversa em que está a mensagem."
+        },
+        "message_id": {
+          "name": "ID da mensagem",
+          "description": "O id da mensagem."
+        },
+        "key": {
+          "name": "Chave da mensagem",
+          "description": "Ou a chave completa de um evento."
+        },
+        "text": {
+          "name": "Novo texto",
+          "description": "O texto que substitui o anterior."
+        }
+      }
+    },
+    "delete_message": {
+      "name": "Apagar uma mensagem",
+      "description": "Apaga uma mensagem para todos na conversa.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "chat": {
+          "name": "Conversa",
+          "description": "A conversa em que está a mensagem."
+        },
+        "message_id": {
+          "name": "ID da mensagem",
+          "description": "O id da mensagem."
+        },
+        "key": {
+          "name": "Chave da mensagem",
+          "description": "Ou a chave completa de um evento."
+        }
+      }
+    },
+    "send_poll": {
+      "name": "Enviar uma enquete",
+      "description": "Envia uma enquete; os votos chegam como eventos hornero_poll_vote.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "to": {
+          "name": "Destinatário",
+          "description": "Número com código do país, ou o ID de um grupo."
+        },
+        "question": {
+          "name": "Pergunta",
+          "description": "O título da enquete."
+        },
+        "options": {
+          "name": "Opções",
+          "description": "Entre 2 e 12 respostas diferentes."
+        },
+        "selectable_count": {
+          "name": "Escolhas por pessoa",
+          "description": "Quantas opções cada um pode escolher. 0 permite qualquer número."
+        },
+        "typing": {
+          "name": "Indicador de digitação",
+          "description": "Defina como false para enviar na hora."
+        }
+      }
+    },
+    "send_location": {
+      "name": "Enviar uma localização",
+      "description": "Envia um ponto no mapa.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "to": {
+          "name": "Destinatário",
+          "description": "Número com código do país, ou o ID de um grupo."
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "Em graus."
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "Em graus."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "O nome do lugar."
+        },
+        "address": {
+          "name": "Endereço",
+          "description": "Exibido abaixo do nome."
+        },
+        "typing": {
+          "name": "Indicador de digitação",
+          "description": "Defina como false para enviar na hora."
+        }
+      }
+    },
+    "get_group": {
+      "name": "Ver um grupo",
+      "description": "Nome, descrição e membros de um grupo.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "group_id": {
+          "name": "Grupo",
+          "description": "O ID do grupo, terminado em @g.us."
+        }
+      }
+    },
+    "list_groups": {
+      "name": "Listar grupos",
+      "description": "Todos os grupos em que a conta está.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        }
+      }
+    },
+    "resolve_contact": {
+      "name": "Resolver um contato",
+      "description": "Número e LID de uma pessoa, com o nome dela.",
+      "fields": {
+        "clientId": {
+          "name": "Cliente",
+          "description": "Qual conta vinculada usar."
+        },
+        "contact": {
+          "name": "Contato",
+          "description": "Um número de telefone ou um LID."
         }
       }
     }

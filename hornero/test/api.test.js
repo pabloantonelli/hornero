@@ -1,4 +1,7 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterAll, vi } from "vitest";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import request from "supertest";
 import pino from "pino";
 import { createApp } from "../src/app.js";
@@ -54,6 +57,50 @@ const makeClient = (overrides = {}) => ({
   toJid: (phone) => `${String(phone).replace(/\D/g, "")}@s.whatsapp.net`,
   restart: vi.fn(async () => {}),
   emit: vi.fn(),
+  maxMediaBytes: 20e6,
+  downloadMedia: vi.fn(async () => ({
+    buffer: Buffer.from("ogg-bytes"),
+    mimetype: "audio/ogg; codecs=opus",
+    info: {
+      type: "audio",
+      ptt: true,
+      media_id: "AUD1",
+      file_name: null,
+      size: 9,
+    },
+  })),
+  react: vi.fn(async ({ emoji }) => ({
+    key: { id: "R1", remoteJid: "5491111111111@s.whatsapp.net", fromMe: true },
+    messageTimestamp: 1737400001,
+    emoji,
+  })),
+  editMessage: vi.fn(async () => ({
+    key: { id: "E1", remoteJid: "5491111111111@s.whatsapp.net", fromMe: true },
+  })),
+  deleteMessage: vi.fn(async () => ({
+    key: { id: "D1", remoteJid: "5491111111111@s.whatsapp.net", fromMe: true },
+  })),
+  sendPoll: vi.fn(async () => ({
+    key: { id: "P1", remoteJid: "120363000@g.us", fromMe: true },
+    messageTimestamp: 1737400002,
+  })),
+  sendLocation: vi.fn(async () => ({
+    key: { id: "L1", remoteJid: "5491111111111@s.whatsapp.net", fromMe: true },
+  })),
+  listGroups: vi.fn(async () => [
+    { id: "120363000@g.us", name: "Familia", size: 5 },
+  ]),
+  getGroup: vi.fn(async (jid) => ({
+    id: jid,
+    name: "Familia",
+    participants: [],
+  })),
+  resolveContact: vi.fn(async () => ({
+    jid: "5491111111111@s.whatsapp.net",
+    phone: "5491111111111",
+    lid: "111@lid",
+    push_name: "Ana",
+  })),
   ...overrides,
 });
 
@@ -137,10 +184,14 @@ describe("API v1", () => {
     });
 
     expect(res.status).toBe(200);
+    // The original fields stay; the snake_case ones and the key are added.
     expect(res.body).toEqual({
       messageId: "3EB0ABC",
       to: "5491111111111@s.whatsapp.net",
       timestamp: 1737400000,
+      message_id: "3EB0ABC",
+      chat: "5491111111111@s.whatsapp.net",
+      key: { id: "3EB0ABC", remoteJid: "5491111111111@s.whatsapp.net" },
     });
   });
 
@@ -495,5 +546,324 @@ describe("nombres de la lista de permitidos", () => {
 
     const res = await auth(request(app).get("/api/v1/allowlist"));
     expect(res.body.details[0].name).toBeNull();
+  });
+});
+
+describe("media desde archivo, URL o base64", () => {
+  const auth = (req) => req.set("Authorization", `Bearer ${TOKEN}`);
+
+  it("manda un documento en base64 con su nombre", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/media"),
+    ).send({
+      to: "5491111111111",
+      data: Buffer.from("%PDF").toString("base64"),
+      mimetype: "application/pdf",
+      fileName: "factura.pdf",
+      kind: "document",
+      caption: "Tu factura",
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      message_id: "3EB0ABC",
+      chat: "5491111111111@s.whatsapp.net",
+      timestamp: 1737400000,
+      mimetype: "application/pdf",
+      bytes: 4,
+    });
+    const [, content] = client.sendMessage.mock.calls.at(-1);
+    expect(content).toMatchObject({
+      fileName: "factura.pdf",
+      caption: "Tu factura",
+      mimetype: "application/pdf",
+    });
+    expect(content.document.toString()).toBe("%PDF");
+  });
+
+  it("exige una sola fuente", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/media"),
+    ).send({
+      to: "5491111111111",
+      entityId: "camera.x",
+      url: "https://example.com/a.png",
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.details[0].message).toMatch(/exactly one/);
+  });
+
+  it("rechaza un tipo de envío desconocido", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/media"),
+    ).send({
+      to: "5491111111111",
+      data: "aGk=",
+      kind: "gif",
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("download_media", () => {
+  const auth = (req) => req.set("Authorization", `Bearer ${TOKEN}`);
+  let saveRoot;
+
+  afterAll(async () => {
+    delete process.env.HORNERO_SAVE_ROOTS;
+    if (saveRoot) await fs.rm(saveRoot, { recursive: true, force: true });
+  });
+
+  it("devuelve el archivo en base64", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/media/download"),
+    ).send({ mediaId: "AUD1" });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      content_type: "audio/ogg; codecs=opus",
+      size: 9,
+      data_base64: Buffer.from("ogg-bytes").toString("base64"),
+      media: expect.objectContaining({ type: "audio", ptt: true }),
+    });
+    expect(client.downloadMedia).toHaveBeenCalledWith("AUD1");
+  });
+
+  it("acepta el message_id en lugar del media_id", async () => {
+    await auth(
+      request(app).post("/api/v1/clients/default/media/download"),
+    ).send({
+      messageId: "AUD1",
+      chat: "5491111111111",
+    });
+    expect(client.downloadMedia).toHaveBeenCalledWith("AUD1");
+  });
+
+  it("lo guarda en disco y devuelve la ruta", async () => {
+    saveRoot = await fs.realpath(
+      await fs.mkdtemp(path.join(os.tmpdir(), "hornero-save-")),
+    );
+    process.env.HORNERO_SAVE_ROOTS = saveRoot;
+
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/media/download"),
+    ).send({ mediaId: "AUD1", saveTo: `${saveRoot}/voz/` });
+
+    expect(res.status).toBe(200);
+    expect(res.body.path).toBe(path.join(saveRoot, "voz", "AUD1.ogg"));
+    expect(res.body).not.toHaveProperty("data_base64");
+    expect(await fs.readFile(res.body.path, "utf8")).toBe("ogg-bytes");
+  });
+
+  it("propaga el 404 de un media que no está en caché", async () => {
+    client.downloadMedia.mockRejectedValueOnce(
+      Object.assign(new Error("No media X among the recent messages."), {
+        code: 404,
+      }),
+    );
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/media/download"),
+    ).send({ mediaId: "X" });
+    expect(res.status).toBe(404);
+  });
+
+  it("pide un id", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/media/download"),
+    ).send({ chat: "5491111111111" });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("reacciones, edición, borrado, encuestas y ubicación", () => {
+  const auth = (req) => req.set("Authorization", `Bearer ${TOKEN}`);
+
+  it("reacciona y devuelve el id de la reacción", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/react"),
+    ).send({
+      chat: "5491111111111",
+      messageId: "M1",
+      emoji: "👍",
+    });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ message_id: "R1", timestamp: 1737400001 });
+    expect(client.react).toHaveBeenCalledWith({
+      chat: "5491111111111",
+      messageId: "M1",
+      emoji: "👍",
+    });
+  });
+
+  it("acepta la clave completa del evento para reaccionar", async () => {
+    const key = {
+      id: "M1",
+      remoteJid: "120363000@g.us",
+      participant: "5491111111111@s.whatsapp.net",
+      fromMe: false,
+    };
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/react"),
+    ).send({
+      key,
+      emoji: "",
+    });
+    expect(res.status).toBe(200);
+    expect(client.react).toHaveBeenCalledWith({ key, emoji: "" });
+  });
+
+  it("pide qué mensaje", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/react"),
+    ).send({
+      emoji: "👍",
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("edita un mensaje propio", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/edit"),
+    ).send({
+      messageId: "E1",
+      text: "corregido",
+    });
+    expect(res.status).toBe(200);
+    expect(client.editMessage).toHaveBeenCalledWith({
+      messageId: "E1",
+      text: "corregido",
+    });
+  });
+
+  it("borra un mensaje para todos", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/delete"),
+    ).send({
+      messageId: "D1",
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.message_id).toBe("D1");
+  });
+
+  it("manda una encuesta", async () => {
+    const res = await auth(
+      request(app).post("/api/v1/clients/default/poll"),
+    ).send({
+      to: "120363000@g.us",
+      question: "¿Cena?",
+      options: ["Pizza", "Sushi"],
+      selectableCount: 1,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.message_id).toBe("P1");
+    expect(client.sendPoll).toHaveBeenCalledWith(
+      "120363000@g.us",
+      { question: "¿Cena?", options: ["Pizza", "Sushi"], selectableCount: 1 },
+      { typing: undefined },
+    );
+  });
+
+  it("rechaza encuestas con opciones repetidas o selectableCount de más", async () => {
+    const repeated = await auth(
+      request(app).post("/api/v1/clients/default/poll"),
+    ).send({
+      to: "x",
+      question: "?",
+      options: ["A", "A"],
+    });
+    const tooMany = await auth(
+      request(app).post("/api/v1/clients/default/poll"),
+    ).send({
+      to: "x",
+      question: "?",
+      options: ["A", "B"],
+      selectableCount: 3,
+    });
+    expect(repeated.status).toBe(400);
+    expect(tooMany.status).toBe(400);
+  });
+
+  it("manda una ubicación y valida las coordenadas", async () => {
+    const ok = await auth(
+      request(app).post("/api/v1/clients/default/location"),
+    ).send({
+      to: "5491111111111",
+      latitude: -34.6037,
+      longitude: -58.3816,
+      name: "Obelisco",
+    });
+    const bad = await auth(
+      request(app).post("/api/v1/clients/default/location"),
+    ).send({
+      to: "5491111111111",
+      latitude: 120,
+      longitude: 0,
+    });
+    expect(ok.status).toBe(200);
+    expect(client.sendLocation).toHaveBeenCalledWith(
+      "5491111111111",
+      { latitude: -34.6037, longitude: -58.3816, name: "Obelisco" },
+      { typing: undefined },
+    );
+    expect(bad.status).toBe(400);
+  });
+});
+
+describe("consultas de grupos y contactos", () => {
+  const auth = (req) => req.set("Authorization", `Bearer ${TOKEN}`);
+
+  it("lista los grupos", async () => {
+    const res = await auth(request(app).get("/api/v1/clients/default/groups"));
+    expect(res.body).toEqual({
+      groups: [{ id: "120363000@g.us", name: "Familia", size: 5 }],
+    });
+  });
+
+  it("devuelve un grupo por su id, aun codificado en la URL", async () => {
+    const res = await auth(
+      request(app).get(
+        `/api/v1/clients/default/groups/${encodeURIComponent("120363000@g.us")}`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(client.getGroup).toHaveBeenCalledWith("120363000@g.us");
+  });
+
+  it("resuelve un LID a teléfono", async () => {
+    const res = await auth(
+      request(app).get(
+        `/api/v1/clients/default/contacts/${encodeURIComponent("111@lid")}`,
+      ),
+    );
+    expect(res.body).toEqual({
+      jid: "5491111111111@s.whatsapp.net",
+      phone: "5491111111111",
+      lid: "111@lid",
+      push_name: "Ana",
+    });
+    expect(client.resolveContact).toHaveBeenCalledWith("111@lid");
+  });
+});
+
+describe("ajustes de media", () => {
+  const auth = (req) => req.set("Authorization", `Bearer ${TOKEN}`);
+
+  it("acepta las horas de caché y el tope de tamaño", async () => {
+    const res = await auth(request(app).put("/api/v1/settings")).send({
+      mediaCacheHours: 48,
+      mediaMaxMb: 50,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.settings).toMatchObject({
+      mediaCacheHours: 48,
+      mediaMaxMb: 50,
+    });
+  });
+
+  it("rechaza valores fuera de rango", async () => {
+    const res = await auth(request(app).put("/api/v1/settings")).send({
+      mediaMaxMb: 500,
+    });
+    expect(res.status).toBe(400);
   });
 });

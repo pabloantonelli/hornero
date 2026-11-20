@@ -26,7 +26,8 @@ export const createApp = ({
 
   // Only the ingress panel is served from a browser, and it is same-origin.
   app.use(cors({ origin: false }));
-  app.use(express.json({ limit: "10mb" }));
+  // Large enough for a file sent as base64 at the biggest allowed size.
+  app.use(express.json({ limit: "140mb" }));
   app.use(express.urlencoded({ extended: false }));
 
   app.get("/health", (req, res) => {
