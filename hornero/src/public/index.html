@@ -352,12 +352,118 @@
   .chat-meta.err {
     color: var(--danger);
   }
-  .chat select.mode {
+  .chat .actions {
+    display: flex;
+    gap: 6px;
     flex: none;
-    margin-top: 6px;
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .avatar.sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+  .banner {
+    margin: 0 0 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    background: var(--green-soft);
+  }
+  .banner.err {
+    background: rgba(217, 48, 37, 0.1);
+    color: var(--danger);
+  }
+  .group-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px 10px 10px;
+    margin-top: 10px;
+  }
+  .group-card.warn {
+    border-color: var(--danger);
+  }
+  .group-card > .chat:hover {
+    background: none;
+  }
+  .seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 3px;
+    margin-top: 4px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+  }
+  .seg button {
+    flex: 1 1 160px;
+    border: 0;
+    background: none;
+    padding: 7px 10px;
+    font-size: 0.82rem;
+    border-radius: 7px;
+    color: var(--muted);
+  }
+  .seg button[aria-pressed="true"] {
+    background: var(--card);
+    color: var(--fg);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  }
+  details.people,
+  details.adder {
+    margin-top: 10px;
+  }
+  details.adder {
+    border-top: 1px solid var(--border);
+    padding-top: 6px;
+  }
+  details > summary {
+    cursor: pointer;
+    font-size: 0.86rem;
+    font-weight: 600;
+    padding: 6px 2px;
+  }
+  .people-list {
+    max-height: min(360px, 50vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .people .row {
+    margin-top: 4px;
+  }
+  label.person {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    margin: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: inherit;
+    color: var(--fg);
+  }
+  label.person:hover {
+    background: var(--bg);
+  }
+  label.person input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+  label.person .chat-name,
+  label.person .jid {
+    display: block;
+  }
+  .ok-tag {
+    font-size: 0.78rem;
+    color: var(--green);
+    flex: none;
   }
   .rules {
     margin: 0 0 8px;
@@ -855,43 +961,49 @@
   <section data-panel="chats" hidden>
     <div class="card">
       <h3 data-i18n="who_triggers">Who may write to Hornero</h3>
-      <p class="msg rules" data-i18n-html="allow_rules"></p>
+      <p class="msg rules" data-i18n="chats_intro"></p>
+      <p class="banner" id="allow-state"></p>
       <p class="msg rules" id="mention-state"></p>
-      <p class="msg" id="allow-state"></p>
       <div class="row">
         <input type="search" data-i18n-placeholder="search" id="chat-search" />
-        <select id="chat-client"></select>
-        <button class="primary" id="chat-load" data-i18n="load">Load</button>
+        <select id="chat-client" hidden></select>
+        <button class="ghost" id="chat-load" data-i18n="refresh">
+          Refresh
+        </button>
       </div>
+      <p class="msg" id="chat-load-msg"></p>
     </div>
 
     <div class="card">
-      <h3 data-i18n="allowed_title">Allowed</h3>
-      <div id="allow-list"></div>
+      <h3 data-i18n="groups">Groups</h3>
+      <p class="msg rules" data-i18n="groups_hint"></p>
+      <div id="allow-groups"></div>
+      <details class="adder" id="add-groups-box">
+        <summary data-i18n="add_group">Add a group</summary>
+        <div class="list" id="add-groups"></div>
+      </details>
     </div>
 
     <div class="card">
-      <h3 data-i18n="not_allowed_title">Not allowed yet</h3>
-      <p class="msg" data-i18n-html="copy_hint"></p>
-      <div class="list" id="chat-list">
-        <p class="empty">Press Load to fetch your groups and contacts.</p>
-      </div>
+      <h3 data-i18n="private_title">Private chats</h3>
+      <p class="msg rules" data-i18n="private_hint"></p>
+      <div id="allow-contacts"></div>
+      <details class="adder" id="add-contacts-box">
+        <summary data-i18n="add_person">Add a person</summary>
+        <div class="list" id="add-contacts"></div>
+        <p class="section-label" data-i18n="add_manually">Add manually</p>
+        <div class="row">
+          <input type="text" id="allow-input" placeholder="5491111111111" />
+          <button class="primary" id="allow-add" data-i18n="add">Add</button>
+        </div>
+        <p class="msg" data-i18n-html="manual_hint"></p>
+      </details>
     </div>
 
     <div class="card">
       <h3 data-i18n="recent">Recent senders</h3>
-      <p class="msg" style="margin-top: 0" data-i18n-html="recent_hint"></p>
+      <p class="msg rules" data-i18n="recent_hint"></p>
       <div class="list" id="recent-list"></div>
-
-      <p class="section-label" data-i18n="add_manually">Add manually</p>
-      <div class="row">
-        <input
-          type="text"
-          id="allow-input"
-          data-i18n-placeholder="send_to_ph"
-        />
-        <button class="primary" id="allow-add" data-i18n="add">Add</button>
-      </div>
       <p class="msg" data-i18n-html="incoming_hint"></p>
     </div>
   </section>
@@ -1182,7 +1294,6 @@
       search: "Search by name…",
       load: "Load",
       loading: "Loading…",
-      press_load: "Press Load to fetch your groups and contacts.",
       copy_id: "Copy ID",
       allow: "Allow",
       remove: "Remove",
@@ -1196,8 +1307,6 @@
         "No contacts synced yet — WhatsApp sends them gradually after pairing.",
       members: "members",
       who_triggers: "Who may write to Hornero",
-      allow_only:
-        "Only these {n} senders reach Home Assistant; everyone else is ignored.",
       set_markRead: "Mark incoming messages as read",
       set_markRead_hint:
         "Shows the blue ticks to whoever wrote, and clears the unread badge on your phone.",
@@ -1228,7 +1337,6 @@
       recent: "Recent senders",
       add_manually: "Add manually",
       add: "Add",
-      allow_empty: "Empty: messages from anyone are passed to Home Assistant.",
       nobody_wrote: "Nobody has written yet.",
       allowed: "allowed",
       ignored: "ignored",
@@ -1237,8 +1345,6 @@
       saved_restart: "Saved — restart the add-on for this one to take effect.",
       restart_needed: "restart needed",
       unreachable: "Cannot reach the add-on:",
-      copy_hint:
-        "Copy an ID and paste it into the <code>to</code> field of a service call.",
       b_client: "Client",
       b_action: "What do you want to do?",
       a_text: "Send a text message",
@@ -1252,8 +1358,6 @@
       a_listen_msg: "React to an incoming message",
       a_listen_ack: "React to a delivery or read receipt",
       a_listen_pres: "React to a presence update",
-      recent_hint:
-        "Whoever wrote to you lately. Use Allow here rather than typing an ID by hand — WhatsApp often identifies people by a code that looks nothing like their phone number.",
       incoming_hint:
         "Incoming messages reach Home Assistant as <code>hornero_message</code> events, and automations act on them. Groups need their ID; people may be entered by phone number with country code.",
       settings_hint:
@@ -1305,24 +1409,8 @@
       st_delivered: "delivered",
       st_read: "read",
       st_failed: "failed",
-      allowed_title: "Allowed",
-      not_allowed_title: "Not allowed yet",
-      allowed_groups: "Allowed groups",
-      allowed_contacts: "Allowed contacts",
       no_allowed_groups: "No group allowed.",
       no_allowed_contacts: "No contact allowed.",
-      mode_all: "Every member",
-      mode_members: "Only allowed contacts",
-      mode_all_line: "All {n} members get through",
-      allowed_here: "allowed contacts here: {names}",
-      mode_members_line: "Can write: {names} ({k} of {n} members)",
-      mode_members_none:
-        "No allowed contact is in this group, so nothing gets through.",
-      load_to_see: "Press Load to see who is in it.",
-      in_groups: "Also in: {names}",
-      in_no_group: "Private chat only — not in any allowed group.",
-      allow_rules:
-        "<b>An allowed contact</b> can write to Hornero privately, and in allowed groups set to <b>Only allowed contacts</b>. Allowing a person does not open groups that are not on the list.<br><b>An allowed group</b> lets through <b>every member</b> or <b>only allowed contacts</b> — you choose per group.<br>While the list is empty, anyone who writes to you reaches Home Assistant.",
       mention_on:
         "In groups, a message only gets through when it mentions Hornero or replies to one of its messages.",
       mention_off:
@@ -1330,6 +1418,46 @@
       change_in_settings: "Change",
       allow_moved:
         "Who may write to Hornero is managed in the Groups & contacts tab, next to your groups and contacts.",
+      chats_intro:
+        "Choose which groups and private chats can reach Home Assistant. Everything else is ignored.",
+      allow_empty:
+        "The list is empty: anyone who writes to you reaches Home Assistant. Allow at least one group or person to close it.",
+      allow_summary:
+        "Allowed groups: {g} · Private chats: {p}. Everything else is ignored.",
+      warn_silent:
+        "{n} group(s) set to chosen people have nobody chosen, so nothing gets through there.",
+      press_load: "Press Refresh to fetch your groups and contacts.",
+      groups_hint:
+        "For each group, choose whether any member can write or only the people you tick. Ticking someone in a group does not let them write to Hornero privately.",
+      private_title: "Private chats",
+      private_hint:
+        "People who can write to Hornero directly. This changes nothing in groups.",
+      add_group: "Add a group",
+      add_person: "Add a person",
+      mode_all: "All members",
+      mode_members: "Only people I choose",
+      g_all: "Any member can write.",
+      g_all_n: "All {n} members can write.",
+      g_some: "{k} of {n} can write: {names}",
+      g_none: "Nobody chosen yet, so no message from this group gets through.",
+      g_choose: "Choose who can write ({k} chosen)",
+      g_search: "Search this group…",
+      g_loading_people: "Loading the group's members…",
+      g_load_people: "Press Refresh to see the group's members.",
+      g_strays: "Chosen but no longer in the group: {names}",
+      admin: "admin",
+      no_match: "Nothing matches the search.",
+      nothing_to_add: "Nothing left to add.",
+      wrote_recently: "wrote recently",
+      in_group: "in {name}",
+      private_chat: "private chat",
+      someone: "Someone",
+      allow_group: "Allow the group",
+      let_write: "Let them write here",
+      recent_hint:
+        "Who wrote lately and whether it reached Home Assistant. If someone was left out, let them in from here in one tap.",
+      manual_hint:
+        "Phone number with country code and no <code>+</code>, e.g. <code>5491111111111</code>. Easier: pick them from the list above or from Recent senders.",
     },
     es: {
       tab_status: "Estado",
@@ -1398,7 +1526,6 @@
       search: "Buscar por nombre…",
       load: "Cargar",
       loading: "Cargando…",
-      press_load: "Tocá Cargar para traer tus grupos y contactos.",
       copy_id: "Copiar ID",
       allow: "Permitir",
       remove: "Quitar",
@@ -1412,8 +1539,6 @@
         "Todavía no hay contactos: WhatsApp los sincroniza de a poco tras vincular.",
       members: "miembros",
       who_triggers: "Quién puede escribirle a Hornero",
-      allow_only:
-        "Solo estos {n} remitentes llegan a Home Assistant; el resto se ignora.",
       set_markRead: "Marcar como leídos los mensajes entrantes",
       set_markRead_hint:
         "Muestra el doble tilde azul a quien escribió y saca el globo de no leídos del teléfono.",
@@ -1443,7 +1568,6 @@
       recent: "Remitentes recientes",
       add_manually: "Agregar a mano",
       add: "Agregar",
-      allow_empty: "Vacía: los mensajes de cualquiera llegan a Home Assistant.",
       nobody_wrote: "Todavía no escribió nadie.",
       allowed: "permitido",
       ignored: "ignorado",
@@ -1452,8 +1576,6 @@
       saved_restart: "Guardado: reiniciá el add-on para que esto tome efecto.",
       restart_needed: "requiere reinicio",
       unreachable: "No se puede llegar al add-on:",
-      copy_hint:
-        "Copiá un ID y pegalo en el campo <code>to</code> de un servicio.",
       b_client: "Cliente",
       b_action: "¿Qué querés hacer?",
       a_text: "Enviar un mensaje de texto",
@@ -1467,8 +1589,6 @@
       a_listen_msg: "Reaccionar a un mensaje entrante",
       a_listen_ack: "Reaccionar a un acuse de entrega o lectura",
       a_listen_pres: "Reaccionar a un cambio de presencia",
-      recent_hint:
-        "Quienes te escribieron últimamente. Usá Permitir acá en vez de escribir un ID a mano: WhatsApp suele identificar a la gente con un código que no se parece a su número.",
       incoming_hint:
         "Los mensajes entrantes llegan a Home Assistant como eventos <code>hornero_message</code>, y las automatizaciones actúan sobre ellos. Los grupos necesitan su ID; a las personas podés ingresarlas por número con código de país.",
       settings_hint:
@@ -1520,24 +1640,8 @@
       st_delivered: "entregado",
       st_read: "leído",
       st_failed: "falló",
-      allowed_title: "Permitidos",
-      not_allowed_title: "Todavía no permitidos",
-      allowed_groups: "Grupos permitidos",
-      allowed_contacts: "Contactos permitidos",
       no_allowed_groups: "No hay grupos permitidos.",
       no_allowed_contacts: "No hay contactos permitidos.",
-      mode_all: "Todos los miembros",
-      mode_members: "Solo contactos habilitados",
-      mode_all_line: "Pasan los {n} miembros",
-      allowed_here: "contactos habilitados acá: {names}",
-      mode_members_line: "Pueden escribir: {names} ({k} de {n} miembros)",
-      mode_members_none:
-        "Ningún contacto habilitado está en este grupo: no va a pasar nada.",
-      load_to_see: "Tocá Cargar para ver quiénes están.",
-      in_groups: "También en: {names}",
-      in_no_group: "Solo por privado: no está en ningún grupo permitido.",
-      allow_rules:
-        "<b>Un contacto permitido</b> puede escribirle a Hornero por privado, y en los grupos permitidos configurados como <b>Solo contactos habilitados</b>. Permitir a una persona no habilita grupos que no estén en la lista.<br><b>Un grupo permitido</b> deja pasar a <b>todos los miembros</b> o <b>solo a los contactos habilitados</b>: lo elegís por grupo.<br>Mientras la lista esté vacía, cualquiera que te escriba llega a Home Assistant.",
       mention_on:
         "En grupos, un mensaje solo pasa si arroba a Hornero o responde a un mensaje suyo.",
       mention_off:
@@ -1545,6 +1649,47 @@
       change_in_settings: "Cambiar",
       allow_moved:
         "Quién puede escribirle a Hornero se gestiona en la pestaña Grupos y contactos, junto a tus grupos y contactos.",
+      chats_intro:
+        "Elegí desde qué grupos y chats privados pueden llegar mensajes a Home Assistant. Todo lo demás se ignora.",
+      allow_empty:
+        "La lista está vacía: cualquiera que te escriba llega a Home Assistant. Permití al menos un grupo o una persona para cerrarla.",
+      allow_summary:
+        "Grupos permitidos: {g} · Chats privados: {p}. Todo lo demás se ignora.",
+      warn_silent:
+        "{n} grupo(s) en «Solo las personas que elijo» no tienen a nadie elegido: ahí no pasa ningún mensaje.",
+      press_load: "Tocá Actualizar para traer tus grupos y contactos.",
+      groups_hint:
+        "En cada grupo elegís si puede escribir cualquier miembro o solo las personas que marques. Marcar a alguien en un grupo no lo habilita a escribirle a Hornero por privado.",
+      private_title: "Chats privados",
+      private_hint:
+        "Personas que pueden escribirle a Hornero directamente. No cambia nada en los grupos.",
+      add_group: "Agregar un grupo",
+      add_person: "Agregar una persona",
+      mode_all: "Todos los miembros",
+      mode_members: "Solo las personas que elijo",
+      g_all: "Puede escribir cualquier miembro.",
+      g_all_n: "Pueden escribir los {n} miembros.",
+      g_some: "Pueden escribir {k} de {n}: {names}",
+      g_none:
+        "Todavía no elegiste a nadie: no pasa ningún mensaje de este grupo.",
+      g_choose: "Elegir quiénes pueden escribir ({k} elegidos)",
+      g_search: "Buscar en el grupo…",
+      g_loading_people: "Cargando los miembros del grupo…",
+      g_load_people: "Tocá Actualizar para ver los miembros del grupo.",
+      g_strays: "Elegidos que ya no están en el grupo: {names}",
+      admin: "admin",
+      no_match: "Nada coincide con la búsqueda.",
+      nothing_to_add: "No queda nada para agregar.",
+      wrote_recently: "te escribió hace poco",
+      in_group: "en {name}",
+      private_chat: "por privado",
+      someone: "Alguien",
+      allow_group: "Permitir el grupo",
+      let_write: "Dejarlo escribir acá",
+      recent_hint:
+        "Quién te escribió últimamente y si llegó a Home Assistant. Si alguien quedó afuera, habilitalo desde acá con un toque.",
+      manual_hint:
+        "Número con código de país y sin <code>+</code>, por ejemplo <code>5491111111111</code>. Más fácil: elegilo de la lista de arriba o de Remitentes recientes.",
     },
     "pt-BR": {
       tab_status: "Status",
@@ -1613,7 +1758,6 @@
       search: "Buscar por nome…",
       load: "Carregar",
       loading: "Carregando…",
-      press_load: "Toque em Carregar para buscar seus grupos e contatos.",
       copy_id: "Copiar ID",
       allow: "Permitir",
       remove: "Remover",
@@ -1627,8 +1771,6 @@
         "Ainda sem contatos — o WhatsApp os sincroniza aos poucos após o pareamento.",
       members: "membros",
       who_triggers: "Quem pode escrever para o Hornero",
-      allow_only:
-        "Apenas estes {n} remetentes chegam ao Home Assistant; o resto é ignorado.",
       set_markRead: "Marcar as mensagens recebidas como lidas",
       set_markRead_hint:
         "Mostra os tiques azuis a quem escreveu e limpa o selo de não lidas no telemóvel.",
@@ -1659,7 +1801,6 @@
       recent: "Remetentes recentes",
       add_manually: "Adicionar manualmente",
       add: "Adicionar",
-      allow_empty: "Vazia: mensagens de qualquer um chegam ao Home Assistant.",
       nobody_wrote: "Ninguém escreveu ainda.",
       allowed: "permitido",
       ignored: "ignorado",
@@ -1668,7 +1809,6 @@
       saved_restart: "Salvo — reinicie o add-on para que isto tenha efeito.",
       restart_needed: "requer reinício",
       unreachable: "Não foi possível acessar o add-on:",
-      copy_hint: "Copie um ID e cole no campo <code>to</code> de um serviço.",
       b_client: "Cliente",
       b_action: "O que você quer fazer?",
       a_text: "Enviar uma mensagem de texto",
@@ -1682,8 +1822,6 @@
       a_listen_msg: "Reagir a uma mensagem recebida",
       a_listen_ack: "Reagir a um recibo de entrega ou leitura",
       a_listen_pres: "Reagir a uma mudança de presença",
-      recent_hint:
-        "Quem escreveu para você recentemente. Use Permitir aqui em vez de digitar um ID à mão — o WhatsApp costuma identificar pessoas por um código que não se parece com o número.",
       incoming_hint:
         "As mensagens recebidas chegam ao Home Assistant como eventos <code>hornero_message</code>, e as automações agem sobre elas. Grupos precisam do ID; pessoas podem ser informadas pelo número com código do país.",
       settings_hint:
@@ -1735,24 +1873,8 @@
       st_delivered: "entregue",
       st_read: "lido",
       st_failed: "falhou",
-      allowed_title: "Permitidos",
-      not_allowed_title: "Ainda não permitidos",
-      allowed_groups: "Grupos permitidos",
-      allowed_contacts: "Contatos permitidos",
       no_allowed_groups: "Nenhum grupo permitido.",
       no_allowed_contacts: "Nenhum contato permitido.",
-      mode_all: "Todos os membros",
-      mode_members: "Só contatos permitidos",
-      mode_all_line: "Passam os {n} membros",
-      allowed_here: "contatos permitidos aqui: {names}",
-      mode_members_line: "Podem escrever: {names} ({k} de {n} membros)",
-      mode_members_none:
-        "Nenhum contato permitido está neste grupo: nada vai passar.",
-      load_to_see: "Toque em Carregar para ver quem está nele.",
-      in_groups: "Também em: {names}",
-      in_no_group: "Só no privado: não está em nenhum grupo permitido.",
-      allow_rules:
-        "<b>Um contato permitido</b> pode escrever para o Hornero no privado, e nos grupos permitidos configurados como <b>Só contatos permitidos</b>. Permitir uma pessoa não libera grupos que não estejam na lista.<br><b>Um grupo permitido</b> deixa passar <b>todos os membros</b> ou <b>só os contatos permitidos</b> — você escolhe por grupo.<br>Enquanto a lista estiver vazia, qualquer um que escrever chega ao Home Assistant.",
       mention_on:
         "Em grupos, uma mensagem só passa se mencionar o Hornero ou responder a uma mensagem dele.",
       mention_off:
@@ -1760,6 +1882,46 @@
       change_in_settings: "Alterar",
       allow_moved:
         "Quem pode escrever para o Hornero é gerenciado na aba Grupos e contatos, junto com seus grupos e contatos.",
+      chats_intro:
+        "Escolha de quais grupos e conversas privadas as mensagens podem chegar ao Home Assistant. Todo o resto é ignorado.",
+      allow_empty:
+        "A lista está vazia: qualquer um que escrever para você chega ao Home Assistant. Permita pelo menos um grupo ou uma pessoa para fechá-la.",
+      allow_summary:
+        "Grupos permitidos: {g} · Conversas privadas: {p}. Todo o resto é ignorado.",
+      warn_silent:
+        "{n} grupo(s) em «Só as pessoas que eu escolher» não têm ninguém escolhido: ali nenhuma mensagem passa.",
+      press_load: "Toque em Atualizar para buscar seus grupos e contatos.",
+      groups_hint:
+        "Em cada grupo, escolha se qualquer membro pode escrever ou só as pessoas que você marcar. Marcar alguém num grupo não permite que essa pessoa escreva ao Hornero no privado.",
+      private_title: "Conversas privadas",
+      private_hint:
+        "Pessoas que podem escrever ao Hornero diretamente. Não muda nada nos grupos.",
+      add_group: "Adicionar um grupo",
+      add_person: "Adicionar uma pessoa",
+      mode_all: "Todos os membros",
+      mode_members: "Só as pessoas que eu escolher",
+      g_all: "Qualquer membro pode escrever.",
+      g_all_n: "Os {n} membros podem escrever.",
+      g_some: "{k} de {n} podem escrever: {names}",
+      g_none: "Ninguém escolhido ainda: nenhuma mensagem deste grupo passa.",
+      g_choose: "Escolher quem pode escrever ({k} escolhidos)",
+      g_search: "Buscar no grupo…",
+      g_loading_people: "Carregando os membros do grupo…",
+      g_load_people: "Toque em Atualizar para ver os membros do grupo.",
+      g_strays: "Escolhidos que já não estão no grupo: {names}",
+      admin: "admin",
+      no_match: "Nada corresponde à busca.",
+      nothing_to_add: "Não sobrou nada para adicionar.",
+      wrote_recently: "escreveu há pouco",
+      in_group: "em {name}",
+      private_chat: "no privado",
+      someone: "Alguém",
+      allow_group: "Permitir o grupo",
+      let_write: "Deixar escrever aqui",
+      recent_hint:
+        "Quem escreveu recentemente e se chegou ao Home Assistant. Se alguém ficou de fora, libere daqui com um toque.",
+      manual_hint:
+        "Número com código do país e sem <code>+</code>, por exemplo <code>5511999999999</code>. Mais fácil: escolha na lista acima ou em Remetentes recentes.",
     },
     de: {
       tab_status: "Status",
@@ -1828,7 +1990,6 @@
       search: "Nach Name suchen…",
       load: "Laden",
       loading: "Lädt…",
-      press_load: "Auf Laden tippen, um Gruppen und Kontakte zu holen.",
       copy_id: "ID kopieren",
       allow: "Erlauben",
       remove: "Entfernen",
@@ -1842,8 +2003,6 @@
         "Noch keine Kontakte — WhatsApp überträgt sie nach dem Koppeln nach und nach.",
       members: "Mitglieder",
       who_triggers: "Wer Hornero schreiben darf",
-      allow_only:
-        "Nur diese {n} Absender erreichen Home Assistant; alle anderen werden ignoriert.",
       set_markRead: "Eingehende Nachrichten als gelesen markieren",
       set_markRead_hint:
         "Zeigt dem Absender die blauen Haken und entfernt die Ungelesen-Markierung auf dem Telefon.",
@@ -1874,7 +2033,6 @@
       recent: "Letzte Absender",
       add_manually: "Manuell hinzufügen",
       add: "Hinzufügen",
-      allow_empty: "Leer: Nachrichten von allen gelangen zu Home Assistant.",
       nobody_wrote: "Noch hat niemand geschrieben.",
       allowed: "erlaubt",
       ignored: "ignoriert",
@@ -1883,8 +2041,6 @@
       saved_restart: "Gespeichert — für diese Option das Add-on neu starten.",
       restart_needed: "Neustart nötig",
       unreachable: "Add-on nicht erreichbar:",
-      copy_hint:
-        "Eine ID kopieren und in das Feld <code>to</code> eines Dienstes einfügen.",
       b_client: "Client",
       b_action: "Was möchten Sie tun?",
       a_text: "Textnachricht senden",
@@ -1898,8 +2054,6 @@
       a_listen_msg: "Auf eingehende Nachricht reagieren",
       a_listen_ack: "Auf Zustell- oder Lesebestätigung reagieren",
       a_listen_pres: "Auf Präsenzänderung reagieren",
-      recent_hint:
-        "Wer Ihnen zuletzt geschrieben hat. Hier auf Erlauben tippen, statt eine ID von Hand einzugeben — WhatsApp kennzeichnet Personen oft mit einem Code, der nichts mit ihrer Nummer zu tun hat.",
       incoming_hint:
         "Eingehende Nachrichten erreichen Home Assistant als <code>hornero_message</code>-Ereignisse, auf die Automationen reagieren. Gruppen brauchen ihre ID; Personen können per Nummer mit Ländervorwahl eingetragen werden.",
       settings_hint:
@@ -1951,24 +2105,8 @@
       st_delivered: "zugestellt",
       st_read: "gelesen",
       st_failed: "fehlgeschlagen",
-      allowed_title: "Erlaubt",
-      not_allowed_title: "Noch nicht erlaubt",
-      allowed_groups: "Erlaubte Gruppen",
-      allowed_contacts: "Erlaubte Kontakte",
       no_allowed_groups: "Keine Gruppe erlaubt.",
       no_allowed_contacts: "Kein Kontakt erlaubt.",
-      mode_all: "Alle Mitglieder",
-      mode_members: "Nur erlaubte Kontakte",
-      mode_all_line: "Alle {n} Mitglieder kommen durch",
-      allowed_here: "erlaubte Kontakte hier: {names}",
-      mode_members_line: "Dürfen schreiben: {names} ({k} von {n} Mitgliedern)",
-      mode_members_none:
-        "Kein erlaubter Kontakt ist in dieser Gruppe – es kommt nichts durch.",
-      load_to_see: "Auf Laden tippen, um die Mitglieder zu sehen.",
-      in_groups: "Auch in: {names}",
-      in_no_group: "Nur im Einzelchat – in keiner erlaubten Gruppe.",
-      allow_rules:
-        "<b>Ein erlaubter Kontakt</b> kann Hornero im Einzelchat schreiben und in erlaubten Gruppen mit <b>Nur erlaubte Kontakte</b>. Eine Person zu erlauben öffnet keine Gruppen, die nicht auf der Liste stehen.<br><b>Eine erlaubte Gruppe</b> lässt <b>alle Mitglieder</b> oder <b>nur erlaubte Kontakte</b> durch – pro Gruppe wählbar.<br>Solange die Liste leer ist, erreicht jeder, der schreibt, Home Assistant.",
       mention_on:
         "In Gruppen kommt eine Nachricht nur durch, wenn sie Hornero erwähnt oder auf eine seiner Nachrichten antwortet.",
       mention_off:
@@ -1976,6 +2114,47 @@
       change_in_settings: "Ändern",
       allow_moved:
         "Wer Hornero schreiben darf, wird im Tab Gruppen & Kontakte verwaltet, direkt bei Ihren Gruppen und Kontakten.",
+      chats_intro:
+        "Wähle, aus welchen Gruppen und Einzelchats Nachrichten Home Assistant erreichen. Alles andere wird ignoriert.",
+      allow_empty:
+        "Die Liste ist leer: Jeder, der dir schreibt, erreicht Home Assistant. Erlaube mindestens eine Gruppe oder Person, um sie zu schließen.",
+      allow_summary:
+        "Erlaubte Gruppen: {g} · Einzelchats: {p}. Alles andere wird ignoriert.",
+      warn_silent:
+        "{n} Gruppe(n) mit „Nur ausgewählte Personen“ haben niemanden ausgewählt – dort kommt nichts durch.",
+      press_load: "Tippe auf Aktualisieren, um Gruppen und Kontakte zu holen.",
+      groups_hint:
+        "Wähle pro Gruppe, ob jedes Mitglied schreiben darf oder nur die Personen, die du anhakst. Wer in einer Gruppe angehakt ist, darf Hornero dadurch nicht privat schreiben.",
+      private_title: "Einzelchats",
+      private_hint:
+        "Personen, die Hornero direkt schreiben dürfen. In Gruppen ändert das nichts.",
+      add_group: "Gruppe hinzufügen",
+      add_person: "Person hinzufügen",
+      mode_all: "Alle Mitglieder",
+      mode_members: "Nur ausgewählte Personen",
+      g_all: "Jedes Mitglied darf schreiben.",
+      g_all_n: "Alle {n} Mitglieder dürfen schreiben.",
+      g_some: "{k} von {n} dürfen schreiben: {names}",
+      g_none:
+        "Noch niemand ausgewählt – aus dieser Gruppe kommt keine Nachricht durch.",
+      g_choose: "Auswählen, wer schreiben darf ({k} ausgewählt)",
+      g_search: "In der Gruppe suchen…",
+      g_loading_people: "Mitglieder der Gruppe werden geladen…",
+      g_load_people: "Tippe auf Aktualisieren, um die Mitglieder zu sehen.",
+      g_strays: "Ausgewählt, aber nicht mehr in der Gruppe: {names}",
+      admin: "Admin",
+      no_match: "Nichts passt zur Suche.",
+      nothing_to_add: "Nichts mehr hinzuzufügen.",
+      wrote_recently: "hat kürzlich geschrieben",
+      in_group: "in {name}",
+      private_chat: "Einzelchat",
+      someone: "Jemand",
+      allow_group: "Gruppe erlauben",
+      let_write: "Hier schreiben lassen",
+      recent_hint:
+        "Wer zuletzt geschrieben hat und ob es Home Assistant erreicht hat. Wurde jemand ausgeschlossen, lass ihn hier mit einem Tipp herein.",
+      manual_hint:
+        "Nummer mit Ländervorwahl und ohne <code>+</code>, z. B. <code>4915112345678</code>. Einfacher: aus der Liste oben oder aus Letzte Absender wählen.",
     },
     fr: {
       tab_status: "Statut",
@@ -2044,7 +2223,6 @@
       search: "Rechercher par nom…",
       load: "Charger",
       loading: "Chargement…",
-      press_load: "Appuyez sur Charger pour récupérer groupes et contacts.",
       copy_id: "Copier l'ID",
       allow: "Autoriser",
       remove: "Retirer",
@@ -2058,8 +2236,6 @@
         "Aucun contact pour l'instant — WhatsApp les synchronise progressivement après l'appairage.",
       members: "membres",
       who_triggers: "Qui peut écrire à Hornero",
-      allow_only:
-        "Seuls ces {n} expéditeurs atteignent Home Assistant ; les autres sont ignorés.",
       set_markRead: "Marquer les messages reçus comme lus",
       set_markRead_hint:
         "Affiche les coches bleues à l’expéditeur et efface la pastille de non-lus sur le téléphone.",
@@ -2091,8 +2267,6 @@
       recent: "Expéditeurs récents",
       add_manually: "Ajouter manuellement",
       add: "Ajouter",
-      allow_empty:
-        "Vide : les messages de n'importe qui parviennent à Home Assistant.",
       nobody_wrote: "Personne n'a encore écrit.",
       allowed: "autorisé",
       ignored: "ignoré",
@@ -2102,8 +2276,6 @@
         "Enregistré — redémarrez le module pour que cela prenne effet.",
       restart_needed: "redémarrage requis",
       unreachable: "Module injoignable :",
-      copy_hint:
-        "Copiez un ID et collez-le dans le champ <code>to</code> d'un service.",
       b_client: "Client",
       b_action: "Que voulez-vous faire ?",
       a_text: "Envoyer un message texte",
@@ -2117,8 +2289,6 @@
       a_listen_msg: "Réagir à un message entrant",
       a_listen_ack: "Réagir à un accusé de réception ou de lecture",
       a_listen_pres: "Réagir à un changement de présence",
-      recent_hint:
-        "Qui vous a écrit récemment. Utilisez Autoriser ici plutôt que de saisir un ID à la main — WhatsApp identifie souvent les gens par un code sans rapport avec leur numéro.",
       incoming_hint:
         "Les messages entrants arrivent dans Home Assistant comme événements <code>hornero_message</code>, et les automatisations y réagissent. Les groupes ont besoin de leur ID ; les personnes peuvent être saisies par numéro avec indicatif.",
       settings_hint:
@@ -2170,24 +2340,8 @@
       st_delivered: "remis",
       st_read: "lu",
       st_failed: "échec",
-      allowed_title: "Autorisés",
-      not_allowed_title: "Pas encore autorisés",
-      allowed_groups: "Groupes autorisés",
-      allowed_contacts: "Contacts autorisés",
       no_allowed_groups: "Aucun groupe autorisé.",
       no_allowed_contacts: "Aucun contact autorisé.",
-      mode_all: "Tous les membres",
-      mode_members: "Seulement les contacts autorisés",
-      mode_all_line: "Les {n} membres passent",
-      allowed_here: "contacts autorisés ici : {names}",
-      mode_members_line: "Peuvent écrire : {names} ({k} sur {n} membres)",
-      mode_members_none:
-        "Aucun contact autorisé n'est dans ce groupe : rien ne passera.",
-      load_to_see: "Appuyez sur Charger pour voir qui en fait partie.",
-      in_groups: "Aussi dans : {names}",
-      in_no_group: "Seulement en privé : dans aucun groupe autorisé.",
-      allow_rules:
-        "<b>Un contact autorisé</b> peut écrire à Hornero en privé, et dans les groupes autorisés réglés sur <b>Seulement les contacts autorisés</b>. Autoriser une personne n'ouvre pas les groupes absents de la liste.<br><b>Un groupe autorisé</b> laisse passer <b>tous les membres</b> ou <b>seulement les contacts autorisés</b> — au choix, groupe par groupe.<br>Tant que la liste est vide, quiconque vous écrit atteint Home Assistant.",
       mention_on:
         "Dans les groupes, un message ne passe que s'il mentionne Hornero ou répond à l'un de ses messages.",
       mention_off:
@@ -2195,6 +2349,47 @@
       change_in_settings: "Modifier",
       allow_moved:
         "Qui peut écrire à Hornero se gère dans l'onglet Groupes et contacts, à côté de vos groupes et contacts.",
+      chats_intro:
+        "Choisissez depuis quels groupes et discussions privées les messages peuvent atteindre Home Assistant. Tout le reste est ignoré.",
+      allow_empty:
+        "La liste est vide : quiconque vous écrit atteint Home Assistant. Autorisez au moins un groupe ou une personne pour la fermer.",
+      allow_summary:
+        "Groupes autorisés : {g} · Discussions privées : {p}. Tout le reste est ignoré.",
+      warn_silent:
+        "{n} groupe(s) en « Seulement les personnes choisies » n’ont personne de choisi : aucun message n’y passe.",
+      press_load: "Appuyez sur Actualiser pour récupérer groupes et contacts.",
+      groups_hint:
+        "Pour chaque groupe, choisissez si n’importe quel membre peut écrire ou seulement les personnes cochées. Cocher quelqu’un dans un groupe ne l’autorise pas à écrire à Hornero en privé.",
+      private_title: "Discussions privées",
+      private_hint:
+        "Les personnes qui peuvent écrire directement à Hornero. Cela ne change rien dans les groupes.",
+      add_group: "Ajouter un groupe",
+      add_person: "Ajouter une personne",
+      mode_all: "Tous les membres",
+      mode_members: "Seulement les personnes choisies",
+      g_all: "N’importe quel membre peut écrire.",
+      g_all_n: "Les {n} membres peuvent écrire.",
+      g_some: "{k} sur {n} peuvent écrire : {names}",
+      g_none:
+        "Personne n’est encore choisi : aucun message de ce groupe ne passe.",
+      g_choose: "Choisir qui peut écrire ({k} choisis)",
+      g_search: "Rechercher dans le groupe…",
+      g_loading_people: "Chargement des membres du groupe…",
+      g_load_people: "Appuyez sur Actualiser pour voir les membres du groupe.",
+      g_strays: "Choisis mais plus dans le groupe : {names}",
+      admin: "admin",
+      no_match: "Rien ne correspond à la recherche.",
+      nothing_to_add: "Plus rien à ajouter.",
+      wrote_recently: "a écrit récemment",
+      in_group: "dans {name}",
+      private_chat: "en privé",
+      someone: "Quelqu’un",
+      allow_group: "Autoriser le groupe",
+      let_write: "Le laisser écrire ici",
+      recent_hint:
+        "Qui a écrit récemment et si cela a atteint Home Assistant. Si quelqu’un a été écarté, autorisez-le d’ici en un geste.",
+      manual_hint:
+        "Numéro avec indicatif du pays et sans <code>+</code>, par ex. <code>33612345678</code>. Plus simple : choisissez dans la liste ci-dessus ou dans Expéditeurs récents.",
     },
     it: {
       tab_status: "Stato",
@@ -2263,7 +2458,6 @@
       search: "Cerca per nome…",
       load: "Carica",
       loading: "Caricamento…",
-      press_load: "Tocca Carica per recuperare gruppi e contatti.",
       copy_id: "Copia ID",
       allow: "Consenti",
       remove: "Rimuovi",
@@ -2277,8 +2471,6 @@
         "Ancora nessun contatto — WhatsApp li sincronizza gradualmente dopo l'associazione.",
       members: "membri",
       who_triggers: "Chi può scrivere a Hornero",
-      allow_only:
-        "Solo questi {n} mittenti arrivano a Home Assistant; gli altri vengono ignorati.",
       set_markRead: "Segnare come letti i messaggi in arrivo",
       set_markRead_hint:
         "Mostra le spunte blu a chi ha scritto e toglie il segnalino dei non letti dal telefono.",
@@ -2310,7 +2502,6 @@
       recent: "Mittenti recenti",
       add_manually: "Aggiungi manualmente",
       add: "Aggiungi",
-      allow_empty: "Vuota: i messaggi di chiunque arrivano a Home Assistant.",
       nobody_wrote: "Non ha ancora scritto nessuno.",
       allowed: "consentito",
       ignored: "ignorato",
@@ -2319,8 +2510,6 @@
       saved_restart: "Salvato — riavvia il componente perché abbia effetto.",
       restart_needed: "riavvio necessario",
       unreachable: "Componente irraggiungibile:",
-      copy_hint:
-        "Copia un ID e incollalo nel campo <code>to</code> di un servizio.",
       b_client: "Client",
       b_action: "Cosa vuoi fare?",
       a_text: "Inviare un messaggio di testo",
@@ -2334,8 +2523,6 @@
       a_listen_msg: "Reagire a un messaggio in arrivo",
       a_listen_ack: "Reagire a una conferma di consegna o lettura",
       a_listen_pres: "Reagire a un cambio di presenza",
-      recent_hint:
-        "Chi ti ha scritto di recente. Usa Consenti qui invece di digitare un ID a mano — WhatsApp identifica spesso le persone con un codice che non somiglia al loro numero.",
       incoming_hint:
         "I messaggi in arrivo raggiungono Home Assistant come eventi <code>hornero_message</code>, e le automazioni agiscono su di essi. I gruppi richiedono il loro ID; le persone si possono inserire col numero e il prefisso internazionale.",
       settings_hint:
@@ -2387,24 +2574,8 @@
       st_delivered: "consegnato",
       st_read: "letto",
       st_failed: "non riuscito",
-      allowed_title: "Consentiti",
-      not_allowed_title: "Non ancora consentiti",
-      allowed_groups: "Gruppi consentiti",
-      allowed_contacts: "Contatti consentiti",
       no_allowed_groups: "Nessun gruppo consentito.",
       no_allowed_contacts: "Nessun contatto consentito.",
-      mode_all: "Tutti i membri",
-      mode_members: "Solo contatti consentiti",
-      mode_all_line: "Passano tutti i {n} membri",
-      allowed_here: "contatti consentiti qui: {names}",
-      mode_members_line: "Possono scrivere: {names} ({k} di {n} membri)",
-      mode_members_none:
-        "Nessun contatto consentito è in questo gruppo: non passerà niente.",
-      load_to_see: "Tocca Carica per vedere chi ne fa parte.",
-      in_groups: "Anche in: {names}",
-      in_no_group: "Solo in privato: non è in nessun gruppo consentito.",
-      allow_rules:
-        "<b>Un contatto consentito</b> può scrivere a Hornero in privato, e nei gruppi consentiti impostati su <b>Solo contatti consentiti</b>. Consentire una persona non apre i gruppi che non sono nell'elenco.<br><b>Un gruppo consentito</b> lascia passare <b>tutti i membri</b> o <b>solo i contatti consentiti</b> — lo scegli per ogni gruppo.<br>Finché l'elenco è vuoto, chiunque ti scriva raggiunge Home Assistant.",
       mention_on:
         "Nei gruppi, un messaggio passa solo se menziona Hornero o risponde a un suo messaggio.",
       mention_off:
@@ -2412,6 +2583,47 @@
       change_in_settings: "Cambia",
       allow_moved:
         "Chi può scrivere a Hornero si gestisce nella scheda Gruppi e contatti, accanto ai tuoi gruppi e contatti.",
+      chats_intro:
+        "Scegli da quali gruppi e chat private i messaggi possono arrivare a Home Assistant. Tutto il resto viene ignorato.",
+      allow_empty:
+        "La lista è vuota: chiunque ti scriva arriva a Home Assistant. Consenti almeno un gruppo o una persona per chiuderla.",
+      allow_summary:
+        "Gruppi consentiti: {g} · Chat private: {p}. Tutto il resto viene ignorato.",
+      warn_silent:
+        "{n} gruppo/i in «Solo le persone che scelgo» non hanno nessuno scelto: lì non passa nessun messaggio.",
+      press_load: "Tocca Aggiorna per recuperare gruppi e contatti.",
+      groups_hint:
+        "Per ogni gruppo scegli se può scrivere qualsiasi membro o solo le persone che spunti. Spuntare qualcuno in un gruppo non gli permette di scrivere a Hornero in privato.",
+      private_title: "Chat private",
+      private_hint:
+        "Persone che possono scrivere direttamente a Hornero. Non cambia nulla nei gruppi.",
+      add_group: "Aggiungi un gruppo",
+      add_person: "Aggiungi una persona",
+      mode_all: "Tutti i membri",
+      mode_members: "Solo le persone che scelgo",
+      g_all: "Qualsiasi membro può scrivere.",
+      g_all_n: "Tutti i {n} membri possono scrivere.",
+      g_some: "Possono scrivere {k} su {n}: {names}",
+      g_none:
+        "Nessuno scelto ancora: da questo gruppo non passa nessun messaggio.",
+      g_choose: "Scegli chi può scrivere ({k} scelti)",
+      g_search: "Cerca nel gruppo…",
+      g_loading_people: "Caricamento dei membri del gruppo…",
+      g_load_people: "Tocca Aggiorna per vedere i membri del gruppo.",
+      g_strays: "Scelti ma non più nel gruppo: {names}",
+      admin: "admin",
+      no_match: "Niente corrisponde alla ricerca.",
+      nothing_to_add: "Non resta nulla da aggiungere.",
+      wrote_recently: "ha scritto di recente",
+      in_group: "in {name}",
+      private_chat: "in privato",
+      someone: "Qualcuno",
+      allow_group: "Consenti il gruppo",
+      let_write: "Lascialo scrivere qui",
+      recent_hint:
+        "Chi ha scritto di recente e se è arrivato a Home Assistant. Se qualcuno è rimasto fuori, consentilo da qui con un tocco.",
+      manual_hint:
+        "Numero con prefisso internazionale e senza <code>+</code>, es. <code>393331234567</code>. Più semplice: sceglilo dall’elenco sopra o da Mittenti recenti.",
     },
   };
 
@@ -2490,6 +2702,7 @@
     if (btn.dataset.tab === "chats") {
       refreshRecent();
       loadSettings({ force: true });
+      loadChats();
     }
     if (btn.dataset.tab === "send") fillSendSuggestions();
     if (btn.dataset.tab === "messages") refreshMessages({ force: true });
@@ -2585,32 +2798,6 @@
 
   /* --------------------------------------------------------------- chats */
 
-  function chatRow(item, clientId, isGroup, actions = null, extra = "") {
-    const initial = (item.name || "?").trim().charAt(0).toUpperCase();
-    const hue = [...item.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 360;
-    const members =
-      isGroup && item.participants != null
-        ? `<span class="group-tag">${item.participants} ${t("members")}</span>`
-        : "";
-    return `
-      <div class="chat">
-        <div class="avatar"
-             style="background: hsl(${hue} 55% 45%)"
-             data-avatar="${esc(item.id)}"
-             data-client="${esc(clientId)}">${esc(initial)}</div>
-        <div class="chat-main">
-          <div class="chat-name">${esc(item.name || item.id)} ${members}</div>
-          <div class="jid">${esc(item.id)}</div>
-          ${extra}
-        </div>
-        ${
-          actions ??
-          `<button class="tiny" data-act="copy" data-jid="${esc(item.id)}">${t("copy_id")}</button>
-        <button class="tiny" data-act="allow-add-chat" data-jid="${esc(item.id)}">${t("allow")}</button>`
-        }
-      </div>`;
-  }
-
   /** Strips the device suffix, as the add-on does when matching. */
   const bareJid = (jid) => String(jid ?? "").replace(/:\d+(?=@)/, "");
   const isGroupJid = (jid) => String(jid ?? "").endsWith("@g.us");
@@ -2620,154 +2807,378 @@
       t(key),
     );
 
-  /**
-   * Splits everything into what is on the allowlist and what is not, and for
-   * each allowed group works out which allowed contacts are in it, since in
-   * "members" mode those are the only ones who get through.
-   */
+  /** Panel-only state the allowlist does not hold. */
+  const ui = {
+    // Groups whose people list is unfolded, kept across re-renders.
+    openGroups: new Set(),
+    // What was typed in each group's own search box.
+    peopleSearch: new Map(),
+    loading: {},
+    recent: [],
+  };
+
+  const chatClient = () =>
+    document.getElementById("chat-client").value ||
+    state.clients[0]?.clientId ||
+    "";
+
+  const chatsTabVisible = () =>
+    !document.querySelector('[data-panel="chats"]').hidden;
+
+  /** A phone number to show, from whichever form of the id carries one. */
+  const phoneOf = (ids) => {
+    const jid = ids.find((id) => String(id).endsWith("@s.whatsapp.net"));
+    return jid ? "+" + bareJid(jid).split("@")[0] : null;
+  };
+
+  /** A readable name for any id, from whatever has been synced so far. */
+  function nameOf(id) {
+    const chats = state.chats[chatClient()];
+    const bare = bareJid(id);
+    const detail = allowDetails.find((d) => d.id === id)?.name;
+    if (detail) return detail;
+    if (chats) {
+      const group = chats.groups.find((g) => g.id === id);
+      if (group) return group.name;
+      const contact = chats.contacts.find((c) => bareJid(c.id) === bare);
+      if (contact?.name) return contact.name;
+      for (const g of chats.groups) {
+        const person = (g.people || []).find((p) =>
+          p.ids.some((x) => bareJid(x) === bare),
+        );
+        if (person) return person.name || phoneOf(person.ids) || bare;
+      }
+    }
+    const recent = ui.recent.find(
+      (r) => !r.group && r.ids?.some((x) => bareJid(x) === bare),
+    );
+    if (recent?.name) return recent.name;
+    return phoneOf([bare]) || bare.split("@")[0];
+  }
+
+  function avatar(id, name, clientId, small = false) {
+    const initial = (name || "?").trim().charAt(0).toUpperCase();
+    const hue = [...id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 360;
+    return `<div class="avatar${small ? " sm" : ""}"
+             style="background: hsl(${hue} 55% 45%)"
+             data-avatar="${esc(id)}"
+             data-client="${esc(clientId)}">${esc(initial)}</div>`;
+  }
+
+  function chatRow({ id, name, tag = "", meta = "", actions = "", clientId }) {
+    return `
+      <div class="chat">
+        ${avatar(id, name, clientId)}
+        <div class="chat-main">
+          <div class="chat-name">${esc(name || id)} ${tag}</div>
+          ${meta}
+        </div>
+        <div class="actions">${actions}</div>
+      </div>`;
+  }
+
+  const button = (act, label, data = {}, cls = "tiny") =>
+    `<button class="${cls}" data-act="${act}" ${Object.entries(data)
+      .map(([k, v]) => `data-${k}="${esc(v)}"`)
+      .join(" ")}>${esc(label)}</button>`;
+
+  const membersTag = (n) =>
+    n != null ? `<span class="group-tag">${n} ${t("members")}</span>` : "";
+
+  /** Who in a loaded group is among the chosen people. */
+  function groupPeople(jid, group) {
+    const chosen = new Set((allowMembers[jid] || []).map(bareJid));
+    const people = group?.people || null;
+    const isChosen = (p) => p.ids.some((x) => chosen.has(bareJid(x)));
+    const strays = people
+      ? [...chosen].filter(
+          (c) => !people.some((p) => p.ids.some((x) => bareJid(x) === c)),
+        )
+      : [];
+    return { chosen, people, isChosen, strays };
+  }
+
+  function personRow(jid, person, checked, clientId) {
+    const name = person.name || phoneOf(person.ids) || person.id;
+    const phone = person.name ? phoneOf(person.ids) : null;
+    const admin = person.admin
+      ? `<span class="group-tag">${t("admin")}</span>`
+      : "";
+    const haystack = [name, phone, ...person.ids].join(" ").toLowerCase();
+    return `
+      <label class="person" data-search="${esc(haystack)}">
+        <input type="checkbox" data-act="group-person"
+               data-jid="${esc(jid)}"
+               data-person="${esc(person.id)}"
+               data-ids="${esc(person.ids.join(" "))}"
+               ${checked ? "checked" : ""} />
+        ${avatar(person.id, name, clientId, true)}
+        <span class="chat-main">
+          <span class="chat-name">${esc(name)} ${admin}</span>
+          ${phone ? `<span class="jid">${esc(phone)}</span>` : ""}
+        </span>
+      </label>`;
+  }
+
+  /** One allowed group: who gets through, and the people to choose from. */
+  function groupCard(jid, group, clientId) {
+    const name = nameOf(jid);
+    const mode = allowModes[jid] || "all";
+    const total = group?.participants;
+    const { chosen, people, isChosen, strays } = groupPeople(jid, group);
+    const picked = people ? people.filter(isChosen) : null;
+    const count = picked ? picked.length : chosen.size;
+
+    let status;
+    if (mode === "all") {
+      status = total != null ? fill("g_all_n", { n: total }) : t("g_all");
+    } else if (!count) {
+      status = t("g_none");
+    } else {
+      const names = (
+        picked
+          ? picked.map((p) => p.name || phoneOf(p.ids) || p.id)
+          : [...chosen].map(nameOf)
+      ).join(", ");
+      status = fill("g_some", { k: count, n: total ?? "?", names });
+    }
+    const warn = mode === "members" && !count;
+
+    const seg = `
+      <div class="seg" role="group" aria-label="${esc(t("who_triggers"))}">
+        ${["all", "members"]
+          .map(
+            (m) =>
+              `<button type="button" data-act="group-mode" data-jid="${esc(jid)}" data-mode="${m}" aria-pressed="${m === mode}">${esc(t("mode_" + m))}</button>`,
+          )
+          .join("")}
+      </div>`;
+
+    let chooser = "";
+    if (mode === "members") {
+      let body;
+      if (people) {
+        const sorted = [...people].sort(
+          (a, b) =>
+            isChosen(b) - isChosen(a) ||
+            String(a.name || "~").localeCompare(String(b.name || "~")),
+        );
+        const search =
+          people.length > 8
+            ? `<div class="row"><input type="search" class="people-search" data-jid="${esc(jid)}" placeholder="${esc(t("g_search"))}" value="${esc(ui.peopleSearch.get(jid) || "")}" /></div>`
+            : "";
+        const stray = strays.length
+          ? `<p class="chat-meta">${esc(
+              fill("g_strays", { names: strays.map(nameOf).join(", ") }),
+            )} ${button("group-prune", t("remove"), { jid, ids: strays.join(" ") })}</p>`
+          : "";
+        body =
+          search +
+          `<div class="people-list">${sorted
+            .map((p) => personRow(jid, p, isChosen(p), clientId))
+            .join("")}</div>` +
+          stray;
+      } else {
+        // Members not loaded yet: the chosen ones can still be unticked.
+        const known = [...chosen].map((id) =>
+          personRow(jid, { id, ids: [id], name: nameOf(id) }, true, clientId),
+        );
+        body =
+          `<p class="chat-meta">${t(
+            ui.loading[clientId] ? "g_loading_people" : "g_load_people",
+          )}</p>` + known.join("");
+      }
+      const open = ui.openGroups.has(jid) || !count;
+      chooser = `
+        <details class="people" data-jid="${esc(jid)}" ${open ? "open" : ""}>
+          <summary>${esc(fill("g_choose", { k: count }))}</summary>
+          ${body}
+        </details>`;
+    }
+
+    return `
+      <div class="group-card${warn ? " warn" : ""}">
+        ${chatRow({
+          id: jid,
+          name,
+          tag: membersTag(total),
+          meta: `<div class="chat-meta${warn ? " err" : ""}">${esc(status)}</div>`,
+          actions:
+            button("copy", t("copy_id"), { jid }) +
+            button("allow-remove", t("remove"), { jid }),
+          clientId,
+        })}
+        ${seg}
+        ${chooser}
+      </div>`;
+  }
+
   function renderChats() {
-    const clientId = document.getElementById("chat-client").value;
+    const clientId = chatClient();
     const chats = state.chats[clientId];
+    const loading = ui.loading[clientId];
 
     const needle = document
       .getElementById("chat-search")
       .value.trim()
       .toLowerCase();
-    const hit = (item) =>
+    const hit = (...texts) =>
       !needle ||
-      String(item.name || "")
-        .toLowerCase()
-        .includes(needle) ||
-      item.id.toLowerCase().includes(needle);
+      texts.some((text) =>
+        String(text || "")
+          .toLowerCase()
+          .includes(needle),
+      );
+    const empty = (key) =>
+      `<p class="empty">${t(needle ? "no_match" : key)}</p>`;
+    const notLoaded = `<p class="empty">${t(loading ? "loading" : "press_load")}</p>`;
 
     const allowSet = new Set(allowEntries.map(bareJid));
     const isAllowedId = (id) => allowSet.has(bareJid(id));
     const groupsById = new Map((chats?.groups || []).map((g) => [g.id, g]));
-    const contactsById = new Map(
-      (chats?.contacts || []).map((c) => [bareJid(c.id), c]),
-    );
-    const detailNames = new Map(allowDetails.map((d) => [d.id, d.name]));
-    const nameOf = (id) =>
-      detailNames.get(id) ||
-      contactsById.get(bareJid(id))?.name ||
-      groupsById.get(id)?.name ||
-      id.split("@")[0];
 
-    const allowedContacts = allowEntries.filter((id) => !isGroupJid(id));
-    const allowedGroups = allowEntries.filter(isGroupJid);
-    const membersOf = (group) =>
-      group?.members ? new Set(group.members.map(bareJid)) : null;
-    const allowedIn = (group) => {
-      const members = membersOf(group);
-      return members
-        ? allowedContacts.filter((id) => members.has(bareJid(id)))
-        : null;
-    };
+    // Allowed groups.
+    const groups = allowEntries
+      .filter(isGroupJid)
+      .filter((id) => hit(nameOf(id), id));
+    document.getElementById("allow-groups").innerHTML =
+      groups
+        .map((id) => groupCard(id, groupsById.get(id), clientId))
+        .join("") || empty("no_allowed_groups");
 
-    const groupRows = allowedGroups
-      .map((id) => ({ id, name: nameOf(id), group: groupsById.get(id) }))
-      .filter(hit)
-      .map(({ id, name, group }) => {
-        const mode = allowModes[id] || "all";
-        const here = allowedIn(group);
-        const names = (here || []).map(nameOf).join(", ");
-        let line;
-        if (!here) {
-          line = `<div class="chat-meta">${t("load_to_see")}</div>`;
-        } else if (mode === "members") {
-          line = here.length
-            ? `<div class="chat-meta">${esc(
-                fill("mode_members_line", {
-                  names,
-                  k: here.length,
-                  n: group.participants,
-                }),
-              )}</div>`
-            : `<div class="chat-meta err">${t("mode_members_none")}</div>`;
-        } else {
-          line = `<div class="chat-meta">${esc(
-            fill("mode_all_line", { n: group.participants }) +
-              (here.length ? " · " + fill("allowed_here", { names }) : ""),
-          )}</div>`;
-        }
-        const select = `<select class="mode" data-act="allow-mode" data-jid="${esc(id)}">
-            ${["all", "members"]
-              .map(
-                (m) =>
-                  `<option value="${m}" ${m === mode ? "selected" : ""}>${t("mode_" + m)}</option>`,
-              )
-              .join("")}
-          </select>`;
-        return chatRow(
-          {
-            id,
-            name,
-            participants: group?.participants,
-          },
-          clientId,
-          true,
-          `<button class="tiny" data-act="allow-remove" data-jid="${esc(id)}">${t("remove")}</button>`,
-          line + select,
-        );
-      });
-
-    const loadedAllowedGroups = allowedGroups
-      .map((id) => groupsById.get(id))
-      .filter(Boolean);
-    const contactRows = allowedContacts
-      .map((id) => ({ id, name: nameOf(id) }))
-      .filter(hit)
-      .map(({ id, name }) => {
-        let line = "";
-        if (chats) {
-          const where = loadedAllowedGroups
-            .filter((g) => membersOf(g)?.has(bareJid(id)))
-            .map((g) => g.name);
-          line = `<div class="chat-meta">${esc(
-            where.length
-              ? fill("in_groups", { names: where.join(", ") })
-              : t("in_no_group"),
-          )}</div>`;
-        }
-        return chatRow(
-          { id, name },
-          clientId,
-          false,
-          `<button class="tiny" data-act="allow-remove" data-jid="${esc(id)}">${t("remove")}</button>`,
-          line,
-        );
-      });
-
-    document.getElementById("allow-list").innerHTML = `
-      <p class="section-label">${t("allowed_groups")} (${groupRows.length})</p>
-      ${groupRows.join("") || `<p class="empty">${t("no_allowed_groups")}</p>`}
-      <p class="section-label">${t("allowed_contacts")} (${contactRows.length})</p>
-      ${contactRows.join("") || `<p class="empty">${t("no_allowed_contacts")}</p>`}`;
-
-    const list = document.getElementById("chat-list");
+    // Groups that could be added.
+    const addGroups = document.getElementById("add-groups");
     if (!chats) {
-      list.innerHTML = `<p class="empty">${t("press_load")}</p>`;
+      addGroups.innerHTML = notLoaded;
     } else {
-      const groups = chats.groups.filter((g) => hit(g) && !isAllowedId(g.id));
-      const contacts = chats.contacts.filter(
-        (c) => hit(c) && !isAllowedId(c.id),
-      );
-      list.innerHTML = `
-      <p class="section-label">${t("groups")} (${groups.length})</p>
-      ${
-        groups.length
-          ? groups.map((g) => chatRow(g, clientId, true)).join("")
-          : `<p class="empty">${t("no_groups")}</p>`
-      }
-      <p class="section-label">${t("contacts")} (${contacts.length})</p>
-      ${
-        contacts.length
-          ? contacts.map((c) => chatRow(c, clientId, false)).join("")
-          : `<p class="empty">${t("no_contacts")}</p>`
-      }`;
+      const rows = chats.groups
+        .filter((g) => !isAllowedId(g.id) && hit(g.name, g.id))
+        .map((g) =>
+          chatRow({
+            id: g.id,
+            name: g.name,
+            tag: membersTag(g.participants),
+            actions:
+              button("copy", t("copy_id"), { jid: g.id }) +
+              button(
+                "allow-add-chat",
+                t("allow"),
+                { jid: g.id },
+                "tiny primary",
+              ),
+            clientId,
+          }),
+        );
+      addGroups.innerHTML = rows.join("") || empty("nothing_to_add");
     }
 
+    // Allowed private chats.
+    const contacts = allowEntries
+      .filter((id) => !isGroupJid(id))
+      .filter((id) => hit(nameOf(id), id));
+    document.getElementById("allow-contacts").innerHTML =
+      contacts
+        .map((id) => {
+          const name = nameOf(id);
+          const phone = phoneOf([id]);
+          return chatRow({
+            id,
+            name,
+            meta:
+              phone && phone !== name
+                ? `<div class="jid">${esc(phone)}</div>`
+                : "",
+            actions: button("allow-remove", t("remove"), { jid: id }),
+            clientId,
+          });
+        })
+        .join("") || empty("no_allowed_contacts");
+
+    // People who could be added: whoever wrote recently first, then contacts.
+    const seen = new Set();
+    const candidates = [];
+    for (const r of ui.recent) {
+      if (r.group || r.ids?.some(isAllowedId) || seen.has(r.id)) continue;
+      r.ids?.forEach((x) => seen.add(bareJid(x)));
+      candidates.push({ id: r.id, name: r.name, recent: true });
+    }
+    for (const c of chats?.contacts || []) {
+      if (isAllowedId(c.id) || seen.has(bareJid(c.id))) continue;
+      seen.add(bareJid(c.id));
+      candidates.push({ id: c.id, name: c.name });
+    }
+    const addContacts = document.getElementById("add-contacts");
+    const rows = candidates
+      .filter((c) => hit(c.name, c.id))
+      .map((c) =>
+        chatRow({
+          id: c.id,
+          name: c.name || phoneOf([c.id]) || c.id,
+          meta: `<div class="jid">${esc(
+            [phoneOf([c.id]), c.recent ? t("wrote_recently") : null]
+              .filter(Boolean)
+              .join(" · ") || c.id,
+          )}</div>`,
+          actions: button(
+            "allow-add-chat",
+            t("allow"),
+            { jid: c.id },
+            "tiny primary",
+          ),
+          clientId,
+        }),
+      );
+    addContacts.innerHTML =
+      rows.join("") || (chats ? empty("nothing_to_add") : notLoaded);
+
+    applyPeopleSearch();
+    renderRecent();
     loadAvatars();
+  }
+
+  /** Filters a group's people in place, so the search box keeps its focus. */
+  function applyPeopleSearch() {
+    for (const [jid, value] of ui.peopleSearch) {
+      const box = [...document.querySelectorAll("details.people")].find(
+        (d) => d.dataset.jid === jid,
+      );
+      if (!box) continue;
+      const needle = value.trim().toLowerCase();
+      box.querySelectorAll("label.person").forEach((row) => {
+        row.hidden = Boolean(needle) && !row.dataset.search.includes(needle);
+      });
+    }
+  }
+
+  /**
+   * Fetches the client's groups and contacts. Done on its own when the tab
+   * opens: choosing who may write needs the members, so there is no point
+   * making people press a button first.
+   */
+  async function loadChats({ force = false } = {}) {
+    const clientId = chatClient();
+    if (!clientId || ui.loading[clientId]) return;
+    if (state.chats[clientId] && !force) return;
+
+    const msg = document.getElementById("chat-load-msg");
+    const btn = document.getElementById("chat-load");
+    ui.loading[clientId] = true;
+    btn.disabled = true;
+    msg.className = "msg";
+    msg.textContent = t("loading");
+    renderChats();
+    try {
+      state.chats[clientId] = await api(`/clients/${clientId}/chats`);
+      msg.textContent = "";
+    } catch (err) {
+      msg.className = "msg err";
+      msg.textContent = err.message;
+    } finally {
+      ui.loading[clientId] = false;
+      btn.disabled = false;
+      renderChats();
+      fillSendSuggestions();
+    }
   }
 
   /**
@@ -2819,43 +3230,45 @@
     if (!observer) return;
     document
       .querySelectorAll("[data-avatar]")
-      .forEach((el) => observer.observe(el));
+      .forEach((el) => el.dataset.client && observer.observe(el));
   }
 
+  const chatsPanel = document.querySelector('[data-panel="chats"]');
   document.getElementById("chat-search").addEventListener("input", renderChats);
-  document
-    .getElementById("allow-list")
-    .addEventListener("change", async (e) => {
-      const select = e.target.closest('select[data-act="allow-mode"]');
-      if (!select) return;
-      select.disabled = true;
-      try {
-        await saveAllowlist(allowEntries, {
-          ...allowModes,
-          [select.dataset.jid]: select.value,
-        });
-      } catch (err) {
-        document.getElementById("allow-state").textContent = err.message;
-        select.disabled = false;
-      }
-    });
-  document
-    .getElementById("chat-client")
-    .addEventListener("change", renderChats);
-  document.getElementById("chat-load").addEventListener("click", async (e) => {
-    const clientId = document.getElementById("chat-client").value;
-    const list = document.getElementById("chat-list");
-    e.target.disabled = true;
-    list.innerHTML = `<p class="empty">${t("loading")}</p>`;
-    try {
-      state.chats[clientId] = await api(`/clients/${clientId}/chats`);
-      renderChats();
-    } catch (err) {
-      list.innerHTML = `<p class="empty err msg">${esc(err.message)}</p>`;
-    } finally {
-      e.target.disabled = false;
-    }
+  chatsPanel.addEventListener("input", (e) => {
+    const box = e.target.closest("input.people-search");
+    if (!box) return;
+    ui.peopleSearch.set(box.dataset.jid, box.value);
+    applyPeopleSearch();
   });
+  chatsPanel.addEventListener("change", (e) => {
+    const box = e.target.closest('input[data-act="group-person"]');
+    if (!box) return;
+    toggleGroupPerson(
+      box.dataset.jid,
+      box.dataset.person,
+      box.dataset.ids.split(" "),
+      box.checked,
+    );
+  });
+  // "toggle" does not bubble, so listen while it travels down.
+  chatsPanel.addEventListener(
+    "toggle",
+    (e) => {
+      const box = e.target;
+      if (!box.matches?.("details.people")) return;
+      if (box.open) ui.openGroups.add(box.dataset.jid);
+      else ui.openGroups.delete(box.dataset.jid);
+    },
+    true,
+  );
+  document.getElementById("chat-client").addEventListener("change", () => {
+    renderChats();
+    loadChats();
+  });
+  document
+    .getElementById("chat-load")
+    .addEventListener("click", () => loadChats({ force: true }));
 
   /* ------------------------------------------------------------- builder */
 
@@ -3228,19 +3641,23 @@
     }
 
     if (act === "allow-remove") {
-      await saveAllowlist(
-        allowEntries.filter((jid) => jid !== btn.dataset.jid),
-      );
+      removeEntry(btn.dataset.jid);
       return;
     }
     if (act === "allow-add-chat") {
-      btn.disabled = true;
-      try {
-        await saveAllowlist([...allowEntries, btn.dataset.jid]);
-        btn.textContent = t("allowed");
-      } finally {
-        btn.disabled = false;
-      }
+      addEntry(btn.dataset.jid);
+      return;
+    }
+    if (act === "group-mode") {
+      setGroupMode(btn.dataset.jid, btn.dataset.mode);
+      return;
+    }
+    if (act === "group-add-person") {
+      addPersonToGroup(btn.dataset.jid, btn.dataset.person);
+      return;
+    }
+    if (act === "group-prune") {
+      pruneGroup(btn.dataset.jid, btn.dataset.ids.split(" "));
       return;
     }
     if (act === "goto-tab") {
@@ -3485,13 +3902,30 @@
   let allowEntries = [];
   let allowDetails = [];
   let allowModes = {};
+  let allowMembers = {};
+
+  /** One line saying what gets through right now. */
+  function renderAllowState() {
+    const el = document.getElementById("allow-state");
+    if (!allowEntries.length) {
+      el.textContent = t("allow_empty");
+      el.className = "banner err";
+      return;
+    }
+    const groups = allowEntries.filter(isGroupJid);
+    const silent = groups.filter(
+      (id) => allowModes[id] === "members" && !(allowMembers[id] || []).length,
+    ).length;
+    el.textContent =
+      fill("allow_summary", {
+        g: groups.length,
+        p: allowEntries.length - groups.length,
+      }) + (silent ? " " + fill("warn_silent", { n: silent }) : "");
+    el.className = silent ? "banner err" : "banner";
+  }
 
   function renderAllowlist() {
-    const stateLine = document.getElementById("allow-state");
-    stateLine.textContent = allowEntries.length
-      ? t("allow_only").replace("{n}", allowEntries.length)
-      : t("allow_empty");
-    stateLine.className = allowEntries.length ? "msg" : "msg err";
+    renderAllowState();
     renderChats();
   }
 
@@ -3510,33 +3944,175 @@
     allowEntries = res.entries;
     allowDetails = res.details || [];
     allowModes = res.groupModes || {};
+    allowMembers = res.groupMembers || {};
     renderAllowlist();
   }
 
-  function renderRecent(senders) {
+  /**
+   * Saves the whole list. Changes show at once and saves go out one after
+   * the other, each with the state as it was when made, so ticking several
+   * people quickly never loses one to a slower reply.
+   */
+  let saveChain = Promise.resolve();
+  let pendingSaves = 0;
+
+  function persist() {
+    renderAllowlist();
+    const body = JSON.stringify({
+      entries: allowEntries,
+      groupModes: allowModes,
+      groupMembers: allowMembers,
+    });
+    pendingSaves++;
+    saveChain = saveChain.then(async () => {
+      try {
+        const res = await api("/allowlist", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+        if (--pendingSaves === 0) {
+          applyAllowlist(res);
+          refreshRecent();
+          fillSendSuggestions();
+        }
+      } catch (err) {
+        pendingSaves--;
+        const msg = document.getElementById("chat-load-msg");
+        msg.className = "msg err";
+        msg.textContent = err.message;
+        // Show what is really saved rather than what failed to save.
+        api("/allowlist")
+          .then(applyAllowlist)
+          .catch(() => {});
+      }
+    });
+    return saveChain;
+  }
+
+  function addEntry(jid) {
+    const value = String(jid ?? "").trim();
+    if (!value) return saveChain;
+    if (!allowEntries.some((id) => bareJid(id) === bareJid(value))) {
+      allowEntries = [...allowEntries, value];
+    }
+    return persist();
+  }
+
+  function removeEntry(jid) {
+    allowEntries = allowEntries.filter((id) => id !== jid);
+    const { [jid]: _mode, ...modes } = allowModes;
+    const { [jid]: _people, ...members } = allowMembers;
+    allowModes = modes;
+    allowMembers = members;
+    return persist();
+  }
+
+  function setGroupMode(jid, mode) {
+    if ((allowModes[jid] || "all") === mode) return saveChain;
+    allowModes = { ...allowModes, [jid]: mode };
+    if (mode === "members") ui.openGroups.add(jid);
+    return persist();
+  }
+
+  function toggleGroupPerson(jid, person, ids, on) {
+    const forms = new Set(ids.map(bareJid));
+    const current = (allowMembers[jid] || []).filter(
+      (id) => !forms.has(bareJid(id)),
+    );
+    allowMembers = {
+      ...allowMembers,
+      [jid]: on ? [...current, person] : current,
+    };
+    return persist();
+  }
+
+  /** From a recent message: let that author write in that group. */
+  function addPersonToGroup(jid, person) {
+    if (!allowEntries.includes(jid)) allowEntries = [...allowEntries, jid];
+    allowModes = { ...allowModes, [jid]: "members" };
+    ui.openGroups.add(jid);
+    return toggleGroupPerson(jid, person, [person], true);
+  }
+
+  function pruneGroup(jid, strays) {
+    const gone = new Set(strays.map(bareJid));
+    allowMembers = {
+      ...allowMembers,
+      [jid]: (allowMembers[jid] || []).filter((id) => !gone.has(bareJid(id))),
+    };
+    return persist();
+  }
+
+  /**
+   * Who wrote lately and whether it got through, with the one action that
+   * would let them in: allow the chat, allow the group, or let that person
+   * write in a group that only admits chosen people.
+   */
+  function renderRecent() {
     const list = document.getElementById("recent-list");
+    if (!list) return;
+    const senders = ui.recent;
+    const allowSet = new Set(allowEntries.map(bareJid));
+    const clientId = chatClient();
 
     list.innerHTML = senders.length
       ? senders
           .map((sender) => {
             const when = new Date(sender.at).toLocaleString();
-            const tag = sender.group
-              ? `<span class="group-tag">${t("groups")}</span>`
-              : "";
-            const status = sender.allowed ? t("allowed") : t("ignored");
-            return `
-      <div class="chat">
-        <div class="chat-main">
-          <div class="chat-name">${esc(sender.name || sender.id)} ${tag}</div>
-          <div class="jid">${esc(sender.id)}</div>
-          <div class="chat-meta">${when} · ${status}</div>
-        </div>
-        ${
-          sender.allowed
-            ? ""
-            : `<button class="tiny" data-act="allow-add-chat" data-jid="${esc(sender.id)}">${t("allow")}</button>`
-        }
-      </div>`;
+            const where = sender.group
+              ? fill("in_group", { name: nameOf(sender.id) })
+              : t("private_chat");
+            const who =
+              sender.name ||
+              (sender.group
+                ? phoneOf(sender.authorIds || []) || t("someone")
+                : phoneOf(sender.ids || []) || sender.id);
+
+            let action;
+            if (sender.allowed) {
+              action = `<span class="ok-tag">${t("allowed")}</span>`;
+            } else if (!sender.group) {
+              action = button(
+                "allow-add-chat",
+                t("allow"),
+                { jid: sender.id },
+                "tiny primary",
+              );
+            } else if (!allowSet.has(sender.id)) {
+              action = button(
+                "allow-add-chat",
+                t("allow_group"),
+                { jid: sender.id },
+                "tiny primary",
+              );
+            } else if (
+              sender.author &&
+              !(allowMembers[sender.id] || []).some((id) =>
+                (sender.authorIds || [sender.author]).some(
+                  (x) => bareJid(x) === bareJid(id),
+                ),
+              )
+            ) {
+              action = button(
+                "group-add-person",
+                t("let_write"),
+                { jid: sender.id, person: sender.author },
+                "tiny primary",
+              );
+            } else {
+              action = `<span class="ok-tag">${t("allowed")}</span>`;
+            }
+
+            return chatRow({
+              id: sender.group ? sender.author || sender.id : sender.id,
+              name: who,
+              meta: `<div class="chat-meta">${esc(where)} · ${esc(when)} · ${
+                sender.allowed ? t("allowed") : t("ignored")
+              }</div>`,
+              actions: action,
+              clientId,
+            });
           })
           .join("")
       : `<p class="empty">${t("nobody_wrote")}</p>`;
@@ -3545,36 +4121,19 @@
   async function refreshRecent() {
     try {
       const { senders } = await api("/recent-senders");
-      renderRecent(senders);
+      ui.recent = senders;
+      renderChats();
     } catch {
       /* shown empty */
     }
   }
 
-  async function saveAllowlist(entries, groupModes = allowModes) {
-    const res = await api("/allowlist", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entries, groupModes }),
-    });
-    applyAllowlist(res);
-    refreshRecent();
-    fillSendSuggestions();
-  }
-
-  document.getElementById("allow-add").addEventListener("click", async (e) => {
+  document.getElementById("allow-add").addEventListener("click", async () => {
     const input = document.getElementById("allow-input");
     const value = input.value.trim();
     if (!value) return;
-    e.target.disabled = true;
-    try {
-      await saveAllowlist([...allowEntries, value]);
-      input.value = "";
-    } catch (err) {
-      document.getElementById("allow-state").textContent = err.message;
-    } finally {
-      e.target.disabled = false;
-    }
+    input.value = "";
+    await addEntry(value);
   });
 
   /* ---------------------------------------------------------- settings */
@@ -3717,6 +4276,9 @@
       sel.innerHTML = ids.map((id) => `<option>${esc(id)}</option>`).join("");
       if (ids.includes(current)) sel.value = current;
     }
+    // A choice of one is no choice.
+    document.getElementById("chat-client").hidden = ids.length < 2;
+    if (chatsTabVisible()) loadChats();
   }
 
   async function tick() {

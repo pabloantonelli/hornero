@@ -159,10 +159,16 @@ them.** Open the **Groups & contacts** tab and allow the senders you accept —
 your chats and recent senders are listed there with an **Allow** button, so you
 never have to work out an identifier by hand.
 
-- **An allowed person** gets through in a direct chat, and in allowed groups set
-  to _Only allowed contacts_ — never in a group that is not on the list.
-- **An allowed group** lets through _every member_ or _only allowed contacts_,
-  chosen per group. The tab shows which allowed people are in each group.
+- **An allowed group** lets through _every member_ or _only people I choose_,
+  set per group. With the second, tick who may write from the group's own
+  member list. Nothing from a group that is not on the list gets through.
+- **An allowed private chat** lets that person write to Hornero directly. It
+  is separate from groups: ticking someone in a group does not open a private
+  chat with them, and allowing a private chat does not let them write in a
+  group limited to chosen people.
+
+If someone was left out, **Recent senders** shows it with a button to let them
+in — including **Let them write here** for a group member who was ignored.
 
 That matters because WhatsApp increasingly identifies people by a **LID**
 (`173478124720340@lid`) that does not reveal their phone number. Allowing a
@@ -306,7 +312,7 @@ Devices & services**; the dialog fills in from the file the add-on writes.
 
 **Messages arrive but nothing happens.** Check the **Groups & contacts** tab:
 if the allowlist has entries, anyone outside it is ignored on purpose, and a
-group set to _Only allowed contacts_ ignores members who are not allowed.
+group set to _Only people I choose_ ignores members who are not ticked.
 
 ## Development
 

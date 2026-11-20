@@ -406,6 +406,31 @@ describe("allowlist", () => {
     expect(res.body.details[0]).toMatchObject({ mode: "members" });
   });
 
+  it("acepta y devuelve las personas elegidas en cada grupo", async () => {
+    allowlist.replace.mockImplementation(async (entries, modes, members) => {
+      allowlist.entries = entries;
+      allowlist.groupModes = modes;
+      allowlist.groupMembers = members;
+    });
+    const groupMembers = {
+      "120363000@g.us": ["5491111111111@s.whatsapp.net"],
+    };
+
+    const res = await auth(request(app).put("/api/v1/allowlist")).send({
+      entries: ["120363000@g.us"],
+      groupModes: { "120363000@g.us": "members" },
+      groupMembers,
+    });
+
+    expect(res.status).toBe(200);
+    expect(allowlist.replace).toHaveBeenCalledWith(
+      ["120363000@g.us"],
+      { "120363000@g.us": "members" },
+      groupMembers,
+    );
+    expect(res.body.groupMembers).toEqual(groupMembers);
+  });
+
   it("rechaza un modo de grupo desconocido", async () => {
     const res = await auth(request(app).put("/api/v1/allowlist")).send({
       entries: ["120363000@g.us"],

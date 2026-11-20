@@ -19,15 +19,26 @@ export class RecentSenders {
     if (ids.length === 0) return;
 
     const isGroup = String(msg.key.remoteJid).endsWith("@g.us");
-    // One entry per conversation: the group, or the person who wrote.
-    const key = isGroup ? msg.key.remoteJid : ids[0];
+    // One entry per person and chat: someone ignored in a group stays
+    // visible even after others write there.
+    const id = isGroup ? msg.key.remoteJid : ids[0];
+    const key = isGroup ? `${id}|${msg.key.participant ?? ""}` : id;
 
     this.#byKey.delete(key);
     this.#byKey.set(key, {
-      id: key,
+      id,
       ids,
       name: msg.pushName || null,
       group: isGroup,
+      // Who wrote in the group, so the panel can let just that person in.
+      ...(isGroup && msg.key.participant
+        ? {
+            author: msg.key.participant,
+            authorIds: [msg.key.participant, msg.key.participantAlt].filter(
+              Boolean,
+            ),
+          }
+        : {}),
       allowed,
       at: new Date().toISOString(),
     });

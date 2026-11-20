@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### ✨ Changed
+
+- **Groups & contacts, redesigned.** Each allowed group now has its own list
+  of people who may write in it, picked with checkboxes from the group's
+  members (with names, numbers and admins). Choosing someone in a group no
+  longer opens a private chat with them, and private chats are managed in
+  their own section. Groups and contacts load on their own when the tab opens,
+  a banner says what gets through and warns about groups where nobody is
+  chosen, and **Recent senders** offers **Let them write here** for a group
+  member who was ignored.
+- The allowlist API accepts and returns `groupMembers`, the people chosen per
+  group. Existing lists are migrated so the same people keep getting through:
+  each _only chosen people_ group starts with the contacts that were allowed
+  before.
+
 ## 4.2.0
 
 ### ✨ Added

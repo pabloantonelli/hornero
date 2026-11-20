@@ -194,6 +194,7 @@ const settingsSchema = z
 const allowlistSchema = z.object({
   entries: z.array(z.union([z.string(), z.number()])),
   groupModes: z.record(z.string(), z.enum(GROUP_MODES)).optional(),
+  groupMembers: z.record(z.string(), z.array(z.string())).optional(),
 });
 
 const describe = (id, client) => ({
@@ -472,6 +473,7 @@ export const createApiRouter = (
       // The same list with names, for clients that can show them.
       details: withNames(entries, groupModes),
       groupModes,
+      groupMembers: allowlist?.groupMembers ?? {},
       open: allowlist?.open ?? true,
     };
   };
@@ -485,10 +487,11 @@ export const createApiRouter = (
     "/allowlist",
     validate(allowlistSchema),
     asyncRoute(async (req, res) => {
-      const { entries, groupModes } = req.validated;
-      await (groupModes
-        ? allowlist.replace(entries, groupModes)
-        : allowlist.replace(entries));
+      const { entries, groupModes, groupMembers } = req.validated;
+      // Whatever is left out keeps its current value.
+      const args = [entries, groupModes, groupMembers];
+      while (args.length > 1 && args.at(-1) === undefined) args.pop();
+      await allowlist.replace(...args);
       res.json(allowlistBody());
     }),
   );

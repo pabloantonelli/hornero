@@ -18,14 +18,34 @@ describe("RecentSenders", () => {
     ]);
   });
 
-  it("agrupa por conversación: un grupo es una sola entrada", () => {
+  it("en un grupo, una entrada por autor, con quién escribió", () => {
     const recent = new RecentSenders();
     const group = { remoteJid: "120363000@g.us", participant: "1@lid" };
     recent.record(msg(group, "Ana"), true);
-    recent.record(msg({ ...group, participant: "2@lid" }, "Beto"), true);
+    recent.record(
+      msg(
+        {
+          ...group,
+          participant: "2@lid",
+          participantAlt: "5492222222222@s.whatsapp.net",
+        },
+        "Beto",
+      ),
+      false,
+    );
+    recent.record(msg(group, "Ana"), true);
 
-    expect(recent.entries).toHaveLength(1);
-    expect(recent.entries[0].group).toBe(true);
+    expect(recent.entries).toHaveLength(2);
+    expect(recent.entries[0]).toMatchObject({
+      id: "120363000@g.us",
+      group: true,
+      author: "1@lid",
+    });
+    expect(recent.entries[1]).toMatchObject({
+      allowed: false,
+      author: "2@lid",
+      authorIds: ["2@lid", "5492222222222@s.whatsapp.net"],
+    });
   });
 
   it("conserva los identificadores alternativos, para poder permitirlos", () => {

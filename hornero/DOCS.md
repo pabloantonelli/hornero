@@ -631,15 +631,18 @@ filters narrow it down, both editable in the panel's **Groups & contacts** tab:
 **The allowlist.** While it is empty every sender gets through. Once it has
 entries:
 
-- **An allowed person** gets through in a direct chat, and in allowed groups
-  set to _Only allowed contacts_. Allowing a person does not open groups that
-  are not on the list.
-- **An allowed group** lets through either _every member_ or _only allowed
-  contacts_, chosen per group. With _Only allowed contacts_ the panel lists
-  which allowed people are actually in the group, and warns when none are.
+- **An allowed group** lets through either _every member_ or _only people I
+  choose_, set per group. With the second, the panel lists the group's members
+  to tick, and warns when nobody is ticked (then nothing gets through).
+- **An allowed private chat** lets that person write to Hornero directly.
+  Groups and private chats are independent: ticking someone in a group does
+  not open a private chat with them, and allowing a private chat does not let
+  them write in a group limited to chosen people. A group not on the list
+  never gets through.
 
-Allow senders from the **Not allowed yet** or **Recent senders** lists rather
-than typing an id: WhatsApp often addresses people by a LID (`173478…@lid`)
+Pick senders from the lists in the tab — the group's members, **Add a
+person**, or **Recent senders**, which offers **Let them write here** for a
+group member who was ignored — rather than typing an id: WhatsApp often addresses people by a LID (`173478…@lid`)
 that looks nothing like their phone number, and that is the id an incoming
 message carries.
 

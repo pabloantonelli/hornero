@@ -226,7 +226,7 @@ describe("panel: idiomas", () => {
 });
 
 describe("panel: grupos y contactos", () => {
-  const routes = {
+  const routes = () => ({
     "/chats": {
       groups: [
         {
@@ -238,8 +238,34 @@ describe("panel: grupos y contactos", () => {
             "5491111111111@s.whatsapp.net",
             "5492222222222@s.whatsapp.net",
           ],
+          people: [
+            {
+              id: "173478124720340@lid",
+              ids: ["173478124720340@lid", "5491111111111@s.whatsapp.net"],
+              name: "Ana",
+              admin: "admin",
+            },
+            {
+              id: "5492222222222@s.whatsapp.net",
+              ids: ["5492222222222@s.whatsapp.net"],
+              name: "Carla",
+              admin: null,
+            },
+            {
+              id: "5494444444444@s.whatsapp.net",
+              ids: ["5494444444444@s.whatsapp.net"],
+              name: null,
+              admin: null,
+            },
+          ],
         },
-        { id: "120363111@g.us", name: "Trabajo", participants: 8, members: [] },
+        {
+          id: "120363111@g.us",
+          name: "Trabajo",
+          participants: 8,
+          members: [],
+          people: [],
+        },
       ],
       contacts: [
         { id: "5491111111111@s.whatsapp.net", name: "Ana" },
@@ -253,59 +279,169 @@ describe("panel: grupos y contactos", () => {
         { id: "5491111111111@s.whatsapp.net", name: "Ana" },
       ],
       groupModes: { "120363000@g.us": "members" },
+      groupMembers: { "120363000@g.us": ["5491111111111@s.whatsapp.net"] },
       open: false,
+    },
+    "/recent-senders": {
+      senders: [
+        {
+          id: "120363000@g.us",
+          ids: ["120363000@g.us", "5492222222222@s.whatsapp.net"],
+          name: "Carla",
+          group: true,
+          author: "5492222222222@s.whatsapp.net",
+          authorIds: ["5492222222222@s.whatsapp.net"],
+          allowed: false,
+          at: "2026-11-20T10:00:00Z",
+        },
+        {
+          id: "5497777777777@s.whatsapp.net",
+          ids: ["5497777777777@s.whatsapp.net"],
+          name: "Dani",
+          group: false,
+          allowed: false,
+          at: "2026-11-20T09:00:00Z",
+        },
+      ],
     },
     "/clients": { clients: [{ clientId: "default", connected: true }] },
     health: { version: "test" },
-  };
+  });
 
   const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
 
-  const loadChats = async (window) => {
-    window.document.querySelector('nav button[data-tab="chats"]').click();
+  const openTab = async (window) => {
     await settle();
-    window.document.getElementById("chat-load").click();
+    window.document.querySelector('nav button[data-tab="chats"]').click();
     await settle();
   };
 
-  it("separa lo permitido de lo que todavía no lo está", async () => {
-    const window = await boot("es", routes);
-    await loadChats(window);
+  const lastPut = (window) => {
+    const puts = window.fetchCalls.filter(
+      (c) => c.url.includes("/allowlist") && c.opts?.method === "PUT",
+    );
+    return puts.length ? JSON.parse(puts.at(-1).opts.body) : null;
+  };
 
-    const allowed = window.document.getElementById("allow-list").textContent;
-    expect(allowed).toContain("Familia");
-    expect(allowed).toContain("Pueden escribir: Ana (1 de 3 miembros)");
-    expect(allowed).toContain("También en: Familia");
+  const $ = (window, sel) => window.document.querySelector(sel);
+  const text = (window, id) => window.document.getElementById(id).textContent;
 
-    const pending = window.document.getElementById("chat-list").textContent;
-    expect(pending).toContain("Trabajo");
-    expect(pending).toContain("Beto");
-    expect(pending).not.toContain("Familia");
-    expect(pending).not.toContain("Ana");
+  it("carga los grupos sola al abrir la pestaña, sin tocar ningún botón", async () => {
+    const window = await boot("es", routes());
+    await openTab(window);
+
+    expect(
+      window.fetchCalls.some((c) => c.url.includes("/clients/default/chats")),
+    ).toBe(true);
+    expect(text(window, "allow-groups")).toContain("Familia");
+    expect(text(window, "allow-groups")).toContain(
+      "Pueden escribir 1 de 3: Ana",
+    );
+    expect(text(window, "allow-contacts")).toContain("Ana");
   });
 
-  it("la pestaña Ajustes ya no tiene la lista", async () => {
-    const window = await boot("es", routes);
-    const settings = window.document.querySelector('[data-panel="settings"]');
-    expect(settings.querySelector("#allow-list")).toBeNull();
+  it("muestra los miembros del grupo para tildar, con la persona ya elegida marcada aunque llegue por LID", async () => {
+    const window = await boot("es", routes());
+    await openTab(window);
+
+    const boxes = [
+      ...window.document.querySelectorAll('input[data-act="group-person"]'),
+    ];
+    const byName = Object.fromEntries(
+      boxes.map((b) => [
+        b.closest("label").querySelector(".chat-name").textContent.trim(),
+        b.checked,
+      ]),
+    );
+    expect(byName).toMatchObject({ "Ana admin": true, Carla: false });
+    // Sin nombre, se muestra el número.
+    expect(Object.keys(byName)).toContain("+5494444444444");
+  });
+
+  it("tildar a alguien lo agrega solo a ese grupo, sin abrirle el chat privado", async () => {
+    const window = await boot("es", routes());
+    await openTab(window);
+
+    const carla = [
+      ...window.document.querySelectorAll('input[data-act="group-person"]'),
+    ].find((b) => b.dataset.person === "5492222222222@s.whatsapp.net");
+    carla.checked = true;
+    carla.dispatchEvent(new window.Event("change", { bubbles: true }));
+    await settle();
+
+    const body = lastPut(window);
+    expect(body.groupMembers["120363000@g.us"]).toEqual([
+      "5491111111111@s.whatsapp.net",
+      "5492222222222@s.whatsapp.net",
+    ]);
+    expect(body.entries).not.toContain("5492222222222@s.whatsapp.net");
+  });
+
+  it("destildar a alguien quita todas sus formas de id", async () => {
+    const window = await boot("es", routes());
+    await openTab(window);
+
+    const ana = [
+      ...window.document.querySelectorAll('input[data-act="group-person"]'),
+    ].find((b) => b.dataset.person === "173478124720340@lid");
+    ana.checked = false;
+    ana.dispatchEvent(new window.Event("change", { bubbles: true }));
+    await settle();
+
+    expect(lastPut(window).groupMembers["120363000@g.us"]).toEqual([]);
   });
 
   it("cambiar el modo de un grupo lo guarda", async () => {
-    const window = await boot("es", routes);
-    await loadChats(window);
+    const window = await boot("es", routes());
+    await openTab(window);
 
-    const select = window.document.querySelector(
-      'select[data-act="allow-mode"]',
-    );
-    select.value = "all";
-    select.dispatchEvent(new window.Event("change", { bubbles: true }));
+    $(window, 'button[data-act="group-mode"][data-mode="all"]').click();
     await settle();
 
-    const put = window.fetchCalls.find(
-      (c) => c.url.includes("/allowlist") && c.opts?.method === "PUT",
+    expect(lastPut(window).groupModes).toEqual({ "120363000@g.us": "all" });
+  });
+
+  it("los grupos y personas sin permitir se ofrecen para agregar", async () => {
+    const window = await boot("es", routes());
+    await openTab(window);
+
+    expect(text(window, "add-groups")).toContain("Trabajo");
+    expect(text(window, "add-groups")).not.toContain("Familia");
+    const people = text(window, "add-contacts");
+    expect(people).toContain("Beto");
+    expect(people).toContain("Dani");
+    expect(people).not.toContain("Ana");
+  });
+
+  it("desde Remitentes recientes se deja escribir en el grupo a quien quedó afuera", async () => {
+    const window = await boot("es", routes());
+    await openTab(window);
+
+    const btn = $(window, 'button[data-act="group-add-person"]');
+    expect(btn.textContent).toBe("Dejarlo escribir acá");
+    btn.click();
+    await settle();
+
+    expect(lastPut(window).groupMembers["120363000@g.us"]).toContain(
+      "5492222222222@s.whatsapp.net",
     );
-    expect(JSON.parse(put.opts.body).groupModes).toEqual({
-      "120363000@g.us": "all",
-    });
+  });
+
+  it("avisa cuando un grupo no tiene a nadie elegido", async () => {
+    const r = routes();
+    r["/allowlist"] = { ...r["/allowlist"], groupMembers: {} };
+    const window = await boot("es", r);
+    await openTab(window);
+
+    expect(text(window, "allow-groups")).toContain(
+      "Todavía no elegiste a nadie",
+    );
+    expect($(window, "#allow-state").className).toContain("err");
+  });
+
+  it("la pestaña Ajustes ya no tiene la lista", async () => {
+    const window = await boot("es", routes());
+    const settings = $(window, '[data-panel="settings"]');
+    expect(settings.querySelector("#allow-groups")).toBeNull();
   });
 });

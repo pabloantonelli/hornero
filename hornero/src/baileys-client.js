@@ -717,6 +717,27 @@ export class BaileysClient extends EventEmitter2 {
           members: (group.participants ?? []).flatMap((p) =>
             [p.id, p.lid, p.phoneNumber, p.jid].filter(Boolean),
           ),
+          // One entry per person, so the panel can offer them by name.
+          people: (group.participants ?? []).map((p) => {
+            const ids = [
+              ...new Set([p.id, p.lid, p.phoneNumber, p.jid].filter(Boolean)),
+            ];
+            return {
+              id: p.id,
+              ids,
+              name:
+                ids
+                  .map(
+                    (id) =>
+                      this.#contacts.get(id)?.name ?? this.#pushNames.get(id),
+                  )
+                  .find(Boolean) ??
+                p.name ??
+                p.notify ??
+                null,
+              admin: p.admin ?? null,
+            };
+          }),
           announce: Boolean(group.announce),
         }))
         .sort((a, b) => a.name.localeCompare(b.name));

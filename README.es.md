@@ -165,12 +165,18 @@ contactos** y permití los que aceptás: ahí se listan tus chats y los remitent
 recientes con un botón **Permitir**, así nunca tenés que averiguar un
 identificador a mano.
 
-- **Una persona permitida** pasa por privado, y en los grupos permitidos
-  configurados como _Solo contactos habilitados_; nunca en un grupo que no esté
-  en la lista.
-- **Un grupo permitido** deja pasar a _todos los miembros_ o _solo a los
-  contactos habilitados_, según elijas para cada grupo. La pestaña muestra qué
-  personas permitidas están en cada grupo.
+- **Un grupo permitido** deja pasar a _todos los miembros_ o _solo a las
+  personas que elijo_, según cada grupo. Con lo segundo, tildás quiénes pueden
+  escribir desde la lista de miembros del propio grupo. De un grupo que no
+  está en la lista no pasa nada.
+- **Un chat privado permitido** deja que esa persona le escriba a Hornero
+  directamente. Es independiente de los grupos: tildar a alguien en un grupo no
+  le abre el chat privado, y permitirle el privado no lo deja escribir en un
+  grupo limitado a personas elegidas.
+
+Si alguien quedó afuera, **Remitentes recientes** lo muestra con un botón para
+habilitarlo, incluido **Dejarlo escribir acá** para un miembro de un grupo
+que fue ignorado.
 
 Eso importa porque WhatsApp identifica cada vez más a la gente con un **LID**
 (`173478124720340@lid`) que no revela su número. Permitir un número cubre
