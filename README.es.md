@@ -267,7 +267,7 @@ npm ci
 npm test
 ```
 
-El build está fijado por `package-lock.json` y corre sobre Node 20+, así que da
+El build está fijado por `package-lock.json` y corre sobre Node 22+, así que da
 el mismo resultado en cualquier máquina. Las actualizaciones de dependencias
 llegan como pull requests de Renovate.
 

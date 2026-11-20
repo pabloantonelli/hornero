@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### 🐛 Fixed
+
+- **Messages no longer carry WhatsApp's "old version" notice.** The add-on
+  announced the WhatsApp Web version pinned in the Baileys repository, which
+  lags months behind. It now uses the live version from web.whatsapp.com,
+  falling back to the Baileys one, and picks up new releases on every
+  reconnect and periodic refresh.
+
+### 🔧 Changed
+
+- Updated axios 1.21.1, express 5.3.0, pino 10.4.0, zod 4.6.7 and p-queue 10.
+- **Node 22 or newer is required** (p-queue 10). The add-on image already ships
+  Node 22.
+
 ## 4.1.0
 
 ### ⚠️ Breaking

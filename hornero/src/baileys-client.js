@@ -4,6 +4,7 @@ import {
   DisconnectReason,
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
+  fetchLatestWaWebVersion,
   makeCacheableSignalKeyStore,
   Browsers,
 } from "baileys";
@@ -240,18 +241,39 @@ export class BaileysClient extends EventEmitter2 {
   }
 
   /**
-   * The version lookup hits the network. Cache it and fall back to Baileys'
-   * bundled default so a DNS hiccup cannot break an entire reconnection.
+   * Resolves the WhatsApp Web version to announce. Advertising a stale one
+   * makes WhatsApp flag outgoing messages as sent from an old client, so the
+   * live version published by web.whatsapp.com wins. The number pinned in the
+   * Baileys repository (which lags behind) is the first fallback, then the
+   * last known version, then Baileys' bundled default. A network hiccup can
+   * never break a reconnection. Runs on every (re)connect, so the periodic
+   * refresh also picks up new WhatsApp Web releases.
    */
   async #resolveVersion() {
-    try {
-      const { version } = await fetchLatestBaileysVersion();
-      this.#version = version;
-    } catch (err) {
-      this.#logger.warn(
-        { err: err.message },
-        "could not fetch latest WhatsApp Web version, using cached/default",
-      );
+    const sources = [
+      ["web.whatsapp.com", fetchLatestWaWebVersion],
+      ["Baileys repository", fetchLatestBaileysVersion],
+    ];
+    for (const [source, fetchVersion] of sources) {
+      try {
+        const { version, isLatest, error } = await fetchVersion({});
+        if (!isLatest || !Array.isArray(version)) {
+          throw error ?? new Error("no version returned");
+        }
+        if (this.#version?.join(".") !== version.join(".")) {
+          this.#logger.info(
+            { version: version.join("."), source },
+            "using WhatsApp Web version",
+          );
+        }
+        this.#version = version;
+        return version;
+      } catch (err) {
+        this.#logger.warn(
+          { err: err?.message ?? String(err), source },
+          "could not fetch WhatsApp Web version",
+        );
+      }
     }
     return this.#version;
   }

@@ -1,9 +1,9 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-# Baileys 7 is ESM-only and requires Node 20 or newer.
+# Baileys 7 is ESM-only; p-queue 10 requires Node 22 or newer.
 RUN apk add --no-cache nodejs npm \
-    && node -e "if (+process.versions.node.split('.')[0] < 20) { console.error('Node 20+ required, got ' + process.version); process.exit(1) }"
+    && node -e "if (+process.versions.node.split('.')[0] < 22) { console.error('Node 22+ required, got ' + process.version); process.exit(1) }"
 
 WORKDIR /app
 

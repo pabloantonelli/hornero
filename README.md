@@ -261,7 +261,7 @@ npm ci
 npm test
 ```
 
-The build is pinned by `package-lock.json` and runs on Node 20+, so it is
+The build is pinned by `package-lock.json` and runs on Node 22+, so it is
 identical on any machine. Dependency updates arrive as Renovate pull requests.
 
 ## Credits
